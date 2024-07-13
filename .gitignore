@@ -9,6 +9,11 @@
 /[Bb]uilds/
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
+/[Aa]ssets/[Cc]ommercialAssets/*
+/[Aa]ssets/[Cc]ommercialAssets.meta
+/[Aa]ssets/_MK/*
+/[Aa]ssets/_MK.meta
+
 
 # MemoryCaptures can get excessive in size.
 # They also could contain extremely sensitive data
@@ -25,6 +30,7 @@
 
 # Visual Studio cache directory
 .vs/
+.vscode/
 
 # Gradle cache directory
 .gradle/
@@ -70,3 +76,10 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+#drawio backup files.
+*.drawio.bkp
+#drawio temp files.
+*.drawio.dtmp
+CrystalFrost Patreon Source Snapshot 7202023.7z
+CrystalFrost Patreon Build 4 Source Snapshot.7z
