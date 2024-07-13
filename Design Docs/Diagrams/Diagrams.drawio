@@ -1,0 +1,262 @@
+<mxfile host="Electron" modified="2023-04-03T23:05:56.631Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.1.2 Chrome/106.0.5249.199 Electron/21.4.3 Safari/537.36" etag="M1lIKfKL7KPBKE5iVMm0" version="21.1.2" type="device" pages="4">
+  <diagram name="Overview" id="vXsKcy0dSxC2_TYYV3WX">
+    <mxGraphModel dx="2074" dy="1205" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cff05r9WFP89VZKMvsH--1" value="Grids" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="690" y="190" width="110" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=classic;startFill=1;" parent="1" source="cff05r9WFP89VZKMvsH--2" target="cff05r9WFP89VZKMvsH--1" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--2" value="Grid Client&lt;br&gt;(LibreMetavers)" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="530" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;startArrow=classic;startFill=1;" parent="1" source="cff05r9WFP89VZKMvsH--4" target="cff05r9WFP89VZKMvsH--2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;startArrow=classic;startFill=1;" parent="1" source="cff05r9WFP89VZKMvsH--4" target="cff05r9WFP89VZKMvsH--6" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--4" value="Controllers" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="370" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=classic;startFill=1;" parent="1" source="cff05r9WFP89VZKMvsH--6" target="cff05r9WFP89VZKMvsH--9" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--6" value="Unity&amp;nbsp; Abstractions" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="370" y="330" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--9" value="Persistence&lt;br&gt;(Device Filesystem)" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="530" y="330" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--11" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" parent="1" source="cff05r9WFP89VZKMvsH--4" target="cff05r9WFP89VZKMvsH--9" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="570" y="310" as="sourcePoint" />
+            <mxPoint x="620" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--12" value="World State" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="210" y="330" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=classic;startFill=1;" parent="1" source="cff05r9WFP89VZKMvsH--13" target="cff05r9WFP89VZKMvsH--4" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--13" value="UI Abstractions" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="210" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--17" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;" parent="1" source="cff05r9WFP89VZKMvsH--12" target="cff05r9WFP89VZKMvsH--4" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="310" y="300" as="sourcePoint" />
+            <mxPoint x="360" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=classic;startFill=1;" parent="1" source="cff05r9WFP89VZKMvsH--21" target="cff05r9WFP89VZKMvsH--13" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--21" value="Render System" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
+          <mxGeometry x="50" y="190" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--23" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" parent="1" source="cff05r9WFP89VZKMvsH--12" target="cff05r9WFP89VZKMvsH--21" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="470" y="150" as="sourcePoint" />
+            <mxPoint x="520" y="100" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cff05r9WFP89VZKMvsH--27" value="Overview Diagram" style="text;strokeColor=none;fillColor=none;html=1;fontSize=16;fontStyle=1;verticalAlign=middle;align=center;" parent="1" vertex="1">
+          <mxGeometry x="375" y="140" width="100" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="Qkdps6hyI8gu-dJ_E_9V" name="World Model">
+    <mxGraphModel dx="2074" dy="1205" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-29" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-1" target="vFDzAaYUboj-3UHjvaUJ-8" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-1" value="World&lt;br&gt;(Global Root Object)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="80" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-7" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-2" target="vFDzAaYUboj-3UHjvaUJ-6" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-16" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-2" target="vFDzAaYUboj-3UHjvaUJ-15" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-18" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-2" target="vFDzAaYUboj-3UHjvaUJ-17" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-20" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-2" target="vFDzAaYUboj-3UHjvaUJ-19" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-2" value="Region(s)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="320" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-28" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-6" target="vFDzAaYUboj-3UHjvaUJ-25" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-6" value="Renderable Object&lt;br&gt;(Prim)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-12" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-8" target="vFDzAaYUboj-3UHjvaUJ-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-8" value="Region Manager" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-13" value="&lt;h1&gt;World&lt;br&gt;&lt;/h1&gt;&lt;div&gt;The world is the root of the object heirachy. There is only one instance of the world object (infact there might be none in code and its just a concept)&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="80" y="50" width="190" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-14" value="&lt;h1&gt;Region Manager&lt;/h1&gt;&lt;div&gt;Tracks references to all loaded regions, manages their lifetime.&lt;/div&gt;&lt;div&gt;Is a &#39;Region Factory&#39; that the world gets region objects from.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="440" y="170" width="190" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-23" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-15" target="vFDzAaYUboj-3UHjvaUJ-22" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-24" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-15" target="vFDzAaYUboj-3UHjvaUJ-21" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-15" value="Renderable&lt;br&gt;&amp;nbsp;Object&lt;br&gt;(Avatar)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="440" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-27" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="vFDzAaYUboj-3UHjvaUJ-17" target="vFDzAaYUboj-3UHjvaUJ-26" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-17" value="Renderable Object&lt;br&gt;(Mesh)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="120" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-19" value="Renderable Object&lt;br&gt;(Terrain / Sky)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="600" y="440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-21" value="Renderable Object&lt;br&gt;Attachments" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="440" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-22" value="Renderable Object&lt;br&gt;HUDs" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="600" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-25" value="Renderable Object&lt;br style=&quot;border-color: var(--border-color);&quot;&gt;(Linked)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="280" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-26" value="Renderable Object&lt;br&gt;(Linked)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="120" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="vFDzAaYUboj-3UHjvaUJ-30" value="&lt;h1&gt;Region&lt;/h1&gt;&lt;div&gt;Conceptually a region is a collection of renderable objects, Especially if you consider the terrain and sky grid objects.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="70" y="290" width="190" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="pl-R5XPZ-xlCRAcDIZtM" name="Simulation Root">
+    <mxGraphModel dx="2074" dy="1205" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="NBn-ytocE8SzP8E-Vunr-1" target="NBn-ytocE8SzP8E-Vunr-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="NBn-ytocE8SzP8E-Vunr-1" target="NBn-ytocE8SzP8E-Vunr-6">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="NBn-ytocE8SzP8E-Vunr-1" target="NBn-ytocE8SzP8E-Vunr-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-1" value="Simulation Root&lt;br&gt;(Singleton)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-2" value="&lt;h1&gt;Simulation Root&lt;/h1&gt;&lt;div&gt;This component is responsibile for organizing all the data that has been recieved from the grid, and contains the fragment of the world model near the logged in avatar&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="40" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-3" value="Region Manager&lt;br&gt;(Singleton)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-5" value="&lt;h1&gt;Region Manager&lt;/h1&gt;&lt;div&gt;The region manager is responsible for managing the list of regions near the logged in avatar.&amp;nbsp;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="200" width="430" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-6" value="Avatar Manager&lt;br&gt;(Singleton)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="360" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-9" value="&lt;h1&gt;Local Avatar&lt;/h1&gt;&lt;div&gt;Manages Avatar data about the logged in avatar. Unlike other avatars, this is not parented to a region in memory, as so long as the viewer is running, there is always the local logged in avatar, and it can never move out of range, and will never be in a region that moves out of range.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="360" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-10" value="Sky Manager&lt;br&gt;(Singleton)" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="520" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="NBn-ytocE8SzP8E-Vunr-12" value="&lt;h1&gt;Sky Manager&lt;/h1&gt;&lt;div&gt;Manages data about the sky. Sun/moon position, etc. Possibly a home for Windlight or EEP data as well.&amp;nbsp;&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="370" y="520" width="430" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dllIBldcbo0GS0_jR_7z-1" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="680" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="m2TW2zxmuREqVN6qQpls" name="Scene Root">
+    <mxGraphModel dx="2074" dy="1205" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="tme7PRSX_uve3Y0JralE-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="sgzRjk2YqbnjAzQqR-Gv-1" target="tme7PRSX_uve3Y0JralE-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="BJjEVAIMeM95VK6lwYq2-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="sgzRjk2YqbnjAzQqR-Gv-1" target="BJjEVAIMeM95VK6lwYq2-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="BJjEVAIMeM95VK6lwYq2-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="sgzRjk2YqbnjAzQqR-Gv-1" target="BJjEVAIMeM95VK6lwYq2-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="100" y="550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sgzRjk2YqbnjAzQqR-Gv-1" value="Scene Root" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sgzRjk2YqbnjAzQqR-Gv-2" value="&lt;h1&gt;Scene Root&lt;/h1&gt;&lt;div&gt;This refers to the Unity Scene that is the basis for rendering the main viewer window.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="40" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="tme7PRSX_uve3Y0JralE-1" value="3D Scene" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="tme7PRSX_uve3Y0JralE-2" value="&lt;h1&gt;3D Scene&lt;/h1&gt;&lt;div&gt;Conceptually groups all the GameObjects/Components used to render and interact with the 3D Scene. Terrain, Water, Sky, (Main Camera?)&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="200" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="BJjEVAIMeM95VK6lwYq2-1" value="HUD Layer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="360" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="BJjEVAIMeM95VK6lwYq2-3" value="&lt;h1&gt;Hud Layer&lt;/h1&gt;&lt;div&gt;Conceptual grouping of all the GameObjects/Components used to render and interact with the Local Avatar&#39;s Hud attachments.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="360" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="BJjEVAIMeM95VK6lwYq2-4" value="UI Layer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="520" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="BJjEVAIMeM95VK6lwYq2-6" value="&lt;h1&gt;UI Layer&lt;/h1&gt;&lt;div&gt;Conceptual grouping of all the GameObjects/Components used to present the 2D User Interface in the main viewer window, as well as accepting user input.&lt;/div&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="360" y="520" width="440" height="120" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

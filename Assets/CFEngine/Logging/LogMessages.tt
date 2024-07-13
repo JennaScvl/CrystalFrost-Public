@@ -1,0 +1,219 @@
+﻿<#@ template language="C#" hostspecific="true"#>
+<#@ Assembly Name="System.Xml.dll" #>
+<#@ Assembly Name="System.Text.RegularExpressions.dll" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Xml" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".cs" #>
+//------------------------------------------------------
+// This is a generated file. Do not make manual changes.
+// You probably want to edit LogMessages.xml instead.
+//------------------------------------------------------
+using Microsoft.Extensions.Logging;
+using System;
+using System.Diagnostics;
+using UUID = OpenMetaverse.UUID;
+
+<# 
+	string dir = System.IO.Path.GetDirectoryName(this.Host.TemplateFile);
+	string xmlPath = Path.Combine(dir, "LogMessages.xml");
+	XmlDocument doc = new XmlDocument();
+	doc.Load(xmlPath);
+    int namespaceCount = 0;
+
+	foreach(XmlNode namespaceNode in doc.ChildNodes[0].ChildNodes)
+	{
+        if (namespaceNode is XmlComment) continue;
+
+        namespaceCount++;
+
+		string namespaceName = namespaceNode.Attributes["name"]?.Value;
+        if (namespaceName == null)
+        {
+            throw new ApplicationException("Namespace does not have name.");
+        }
+#>
+namespace <#=namespaceName#>
+{
+	public static partial class GeneratedLoggerMessages
+	{
+<#
+
+        int eventCount = 0;
+		foreach(XmlNode eventNode in namespaceNode.ChildNodes)
+		{
+            if (eventNode is XmlComment) continue;
+            eventCount++;
+
+			int eventId = (namespaceCount * 10000) + eventCount;
+
+			string eventName = eventNode.Attributes["name"]?.Value;
+            if(eventName == null)
+            {
+                throw new ApplicationException("Event does not have a name.");
+            }
+
+			string messageSource = eventNode.InnerText.Trim();
+            string level = eventNode.Attributes["level"]?.Value ?? "Debug";
+            bool exception = bool.Parse(eventNode.Attributes["exception"]?.Value ?? "false");
+            ValidateMessageSource(messageSource);
+			List<string> substitutions = GetSubstituions(messageSource);
+			List<string> parameterNames = GetParameterNames(substitutions);
+			List<string> parameterTypes = GetParameterTypes(substitutions);
+            string messageText = GetMessageText(messageSource, substitutions, parameterNames);
+            string eventVarName = eventName + "_Event";
+            string eventTextName = eventName;
+            string types = string.Join(", ", parameterTypes);
+
+            string defineTypes = "";
+            if (parameterTypes.Count > 0)
+                defineTypes = "<" + types +">"; 
+                
+            if (parameterTypes.Count > 0)
+                types +=", ";
+
+            string actionName = eventTextName + "_Action";
+            string methodName = eventName;
+            string methodParams = BuildMethodParameters(parameterNames, parameterTypes, exception);
+
+            if (parameterTypes.Count > 0 || exception)
+                methodParams = ", " + methodParams;
+
+            string actionParams = BuildActionParameters(parameterNames, exception);
+#>
+        internal static readonly EventId <#=eventVarName#>
+            = new(<#=eventId#>, "<#=eventTextName#>");
+        internal static readonly Action<ILogger, <#=types#>Exception> <#=actionName#>
+            = LoggerMessage.Define<#=defineTypes#>(LogLevel.<#=level#>,
+                <#=eventVarName#>,
+                "<#=messageText#>");
+        /// <summary>
+        /// (<#=eventId#>) <#=level#>: <#=messageText#>
+        /// </summary>
+<#
+            if(level != "Warning" && level!="Error" && level!="Critical")
+            {
+#>
+        [Conditional("DEBUG")]
+<#
+            }
+#>
+        public static void <#=methodName#>(this ILogger logger<#=methodParams#>)
+            => <#=actionName#>(logger, <#=actionParams#>);
+
+<#
+		}
+#>
+    }
+}
+
+<#
+    }
+#>
+
+<#+
+        public Regex regex = new Regex("{[^:]*:[^}]*}");
+        public Regex unescapedQuote = new Regex("(\\\"(?<=[^\\\\]\\\")|^\\\")");
+        public Regex untypedReplacement = new Regex("{[^\\:]*}");
+
+        public List<string> GetSubstituions(string message)
+        {
+            List<string> result = new List<string>();
+            foreach (Match match in regex.Matches(message))
+            {
+                result.Add(match.Value);
+            }
+            return result;
+        }
+
+        public List<string> GetParameterNames(List<string> substitutions)
+        {
+            List<string> result = new List<string>();
+            foreach (string sub in substitutions)
+            {
+                int colonPos = sub.IndexOf(':');
+                string name = sub.Substring(1, colonPos - 1);
+                result.Add(name);
+            }
+            return result;
+        }
+
+		public List<string> GetParameterTypes(List<string> substitutions)
+        {
+            List<string> result = new List<string>();
+            foreach (string sub in substitutions)
+            {
+                int colonPos = sub.IndexOf(':');
+                string name = sub.Substring(colonPos + 1, sub.Length - colonPos -2);
+                result.Add(name);
+            }
+            return result;
+        }
+
+        public string GetMessageText(string sourceMessage, List<string> substitutions, List<string> parameterNames)
+        {
+            string result = sourceMessage;
+            for(int i = 0; i < substitutions.Count; i++)
+            {
+                result = result.Replace(substitutions[i], "{" + parameterNames[i] +"}");
+            }
+            return result;
+        }
+
+        public string FirstCharToLower(string str)
+        {
+            return str.Length == 1 
+                ? char.ToLower(str[0]).ToString()
+                : char.ToLower(str[0]) + str.Substring(1);
+        }
+
+        public string BuildMethodParameters(List<string> parameterNames, List<string> parameterTypes, bool exception)
+        {
+            List<string> result = new List<string>();
+            for(int i = 0; i < parameterNames.Count;i++)
+            {
+                result.Add(parameterTypes[i] + " " + FirstCharToLower(parameterNames[i]));
+            }
+            if (exception) result.Add("Exception ex");
+            return string.Join(", ", result);
+        }
+
+        public string BuildActionParameters(List<string> parameterNames, bool exception)
+        {
+            List<string> result = new List<string>();
+            for(int i = 0; i < parameterNames.Count;i++)
+            {
+                result.Add(FirstCharToLower(parameterNames[i]));
+            }
+            if (exception)
+            {
+                result.Add("ex");
+            }
+            else
+            {
+                result.Add("null!");
+            }
+            return string.Join(", ", result);
+        }
+
+        public void ValidateMessageSource(string messageSource)
+        {
+            if(string.IsNullOrWhiteSpace(messageSource))
+            {
+                throw new ApplicationException("Event message is null or whitespace.");
+            }
+
+            var matches = unescapedQuote.Matches(messageSource);
+            if (matches.Count > 0)
+            {
+                throw new ApplicationException("Message contains unescaped quotes. " + messageSource);
+            }
+
+            matches = untypedReplacement.Matches(messageSource);
+            if (matches.Count > 0)
+            {
+                throw new ApplicationException("Message contains untyped replacement" + messageSource);
+            }
+        }
+#>

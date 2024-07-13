@@ -1,0 +1,57 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43c9baea14160014989b649a6e886278, type: 3}
+  m_Name: Configuration
+  m_EditorClassIdentifier: 
+  _renderPipeline: 1
+  showInstallerOnReload: 0
+  _titleImage: {fileID: 2800000, guid: 4f6068e89df94c2438a76e04d4414901, type: 3}
+  _readMe: {fileID: 102900000, guid: 1f92a428b82073c4bbb7cb1b69c49edb, type: 3}
+  _basePackageBuiltin: {fileID: 102900000, guid: e23011fe725f58745b8a39c9899d4b21,
+    type: 3}
+  _basePackageLWRP: {fileID: 102900000, guid: 7ece90080f7007f4db6f78bd39a0e8e0, type: 3}
+  _basePackageURP: {fileID: 102900000, guid: 3181139f989f14f4eba70d9c8fc56200, type: 3}
+  _basePackageHDRP: {fileID: 102900000, guid: f2f5010b28984bb4bbefab59783e4af7, type: 3}
+  _examplesPackageInc: {fileID: 102900000, guid: 330346bc4fa016f40ab5ced1389b4656,
+    type: 3}
+  _examplesPackageBuiltin: {fileID: 102900000, guid: 78a57d59fe99bfd4eb293e6d1d1c06c7,
+    type: 3}
+  _examplesPackageLWRP: {fileID: 102900000, guid: f6e336c52f02f7040978dc8552b0dd09,
+    type: 3}
+  _examplesPackageURP: {fileID: 102900000, guid: 3d7cf5bdc92f8804b93385a6a074b444,
+    type: 3}
+  _examplesPackageURP_2020_3_and_newer: {fileID: 102900000, guid: 57f10544dc643ee40830bf21745abbf8,
+    type: 3}
+  _examplesPackageHDRP: {fileID: 102900000, guid: 2ccf058d8da10a146aaa8455daceb686,
+    type: 3}
+  _examplesPackageHDRP_2020_2_and_newer: {fileID: 102900000, guid: 9512ff5219e390d4d818fa360e277bb4,
+    type: 3}
+  _examplesPackageHDRP_2021_2_and_newer: {fileID: 102900000, guid: 51941c62076c2cd44b42cbbe594c89cd,
+    type: 3}
+  _examplesPackageHDRP_2021_3_and_newer: {fileID: 102900000, guid: 81a02377f60f12c4c973c06fa314ad77,
+    type: 3}
+  _examplesPackageHDRP_2023_1_and_newer: {fileID: 102900000, guid: cdbe14eb590c7914d8e5492c66db1485,
+    type: 3}
+  _examplesSkyHDRP: {fileID: 102900000, guid: 8031451ccc1c52f478487c728ed3b5be, type: 3}
+  _examples:
+  - name: Cubes
+    scene: {fileID: 102900000, guid: c6fbeefcf54dee042b5e468c5da59d9f, type: 3}
+    icon: {fileID: 2800000, guid: 8edcd1661c6ef654bab4da0791034eee, type: 3}
+  - name: Natural
+    scene: {fileID: 102900000, guid: c5c000757c153fe4992ff6198cd0abba, type: 3}
+    icon: {fileID: 2800000, guid: 8e53726294223814da8b305126e83656, type: 3}
+  - name: Space
+    scene: {fileID: 102900000, guid: d79c6a23082b06a49b65ae5adc4d7df8, type: 3}
+    icon: {fileID: 2800000, guid: 5aae1bc090211d745bc06f7265a56da1, type: 3}
+  - name: Spectate
+    scene: {fileID: 102900000, guid: 7bb883e381787c64faff526a745fc71e, type: 3}
+    icon: {fileID: 2800000, guid: 3d68c4e73c97d554d8f938c900156396, type: 3}

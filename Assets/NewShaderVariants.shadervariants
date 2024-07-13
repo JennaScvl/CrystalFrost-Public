@@ -1,0 +1,361 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!200 &20000000
+ShaderVariantCollection:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: NewShaderVariants
+  m_Shaders:
+  - first: {fileID: 10770, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: UNITY_UI_ALPHACLIP
+        passType: 0
+  - first: {fileID: 66, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 106, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: _SUNDISK_SIMPLE
+        passType: 0
+  - first: {fileID: 10490, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 13
+  - first: {fileID: 9000, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9001, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9002, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9003, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9004, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9007, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9101, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 9103, guid: 0000000000000000f000000000000000, type: 0}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: _CASTING_PUNCTUAL_LIGHT_SHADOW
+        passType: 8
+      - keywords: 
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _EMISSION _ENVIRONMENTREFLECTIONS_OFF
+          _MAIN_LIGHT_SHADOWS _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS _EMISSION _ENVIRONMENTREFLECTIONS_OFF
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _EMISSION _ENVIRONMENTREFLECTIONS_OFF _MAIN_LIGHT_SHADOWS
+          _SPECULARHIGHLIGHTS_OFF _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _EMISSION _ENVIRONMENTREFLECTIONS_OFF _SPECULARHIGHLIGHTS_OFF
+          _SURFACE_TYPE_TRANSPARENT
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+      - keywords: _EMISSION _ENVIRONMENTREFLECTIONS_OFF _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS
+          _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _EMISSION _ENVIRONMENTREFLECTIONS_OFF _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS_CASCADE
+          _SHADOWS_SOFT _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _EMISSION _ENVIRONMENTREFLECTIONS_OFF _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS_CASCADE
+          _SPECULARHIGHLIGHTS_OFF
+        passType: 13
+      - keywords: _EMISSION _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+  - first: {fileID: 4800000, guid: fe393ace9b354375a9cb14cdbbc28be4, type: 3}
+    second:
+      variants:
+      - keywords: UNDERLAY_ON
+        passType: 0
+      - keywords: UNDERLAY_ON UNITY_UI_CLIP_RECT
+        passType: 0
+  - first: {fileID: 4800000, guid: 0406db5a14f94604a8c57ccfbc9f3b46, type: 3}
+    second:
+      variants:
+      - keywords: _SURFACE_TYPE_TRANSPARENT
+        passType: 0
+  - first: {fileID: 4800000, guid: 69c1f799e772cb6438f56c23efccb782, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: INSTANCING_ON
+        passType: 8
+      - keywords: _ADDITIONAL_LIGHTS
+        passType: 13
+      - keywords: _ADDITIONAL_LIGHTS _SCREEN_SPACE_OCCLUSION
+        passType: 13
+      - keywords: _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS
+        passType: 13
+      - keywords: _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: 2c6e52535f17dfc4b8e0bb3d1e91aea4,
+      type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+      - keywords: _CASTING_PUNCTUAL_LIGHT_SHADOW
+        passType: 8
+      - keywords: _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 13
+  - first: {fileID: 4800000, guid: c17132b1f77d20942aa75f8429c0f8bc, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: d6dae50ee9e1bfa4db75f19f99355220, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _DEPTH_MSAA_2
+        passType: 0
+  - first: {fileID: 4800000, guid: e9155b26e1bc55942a41e518703fe304, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _ADDITIONAL_LIGHT_SHADOWS _GBUFFER_NORMALS_OCT _POINT _SHADOWS_SOFT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DIRECTIONAL _GBUFFER_NORMALS_OCT
+          _MAIN_LIGHT_SHADOWS
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DIRECTIONAL _GBUFFER_NORMALS_OCT
+          _MAIN_LIGHT_SHADOWS _SCREEN_SPACE_OCCLUSION
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DIRECTIONAL _GBUFFER_NORMALS_OCT
+          _MAIN_LIGHT_SHADOWS _SHADOWS_SOFT
+        passType: 0
+      - keywords: _DEFERRED_FIRST_LIGHT _DEFERRED_MAIN_LIGHT _DIRECTIONAL _GBUFFER_NORMALS_OCT
+          _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _DIRECTIONAL _GBUFFER_NORMALS_OCT _LIT _MAIN_LIGHT_SHADOWS
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _DIRECTIONAL _GBUFFER_NORMALS_OCT _LIT _MAIN_LIGHT_SHADOWS
+          _SCREEN_SPACE_OCCLUSION
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _DIRECTIONAL _GBUFFER_NORMALS_OCT _LIT _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _DIRECTIONAL _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS
+          _SCREEN_SPACE_OCCLUSION _SIMPLELIT
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _DIRECTIONAL _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS
+          _SIMPLELIT
+        passType: 0
+      - keywords: _DEFERRED_STENCIL _DIRECTIONAL _GBUFFER_NORMALS_OCT _MAIN_LIGHT_SHADOWS_CASCADE
+          _SIMPLELIT
+        passType: 0
+      - keywords: _DIRECTIONAL
+        passType: 0
+  - first: {fileID: 4800000, guid: e6e9a19c3678ded42a3bc431ebef7dbd, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: f514c58fa339021409496cd6d536ad98, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 9084e3f3864daaf4097cd5293d091d6f, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 17053f3c2243ce148a5450cc527e7141, type: 3}
+    second:
+      variants:
+      - keywords: KW_DYNAMIC_WAVES USE_LOD2
+        passType: 0
+      - keywords: USE_LOD2
+        passType: 0
+  - first: {fileID: 4800000, guid: 1f8fc0e3d0d652e4c9eae4d6a2aac368, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: KW_DYNAMIC_WAVES USE_FILTERING USE_MULTIPLE_SIMULATIONS USE_SHORELINE
+        passType: 0
+  - first: {fileID: 4800000, guid: 9d5e7ecb1a2337d41aa9ffd0749f1b3b, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: USE_VOLUMETRIC_LIGHT
+        passType: 0
+  - first: {fileID: 4800000, guid: 421fdafba3629354580297894190859c, type: 3}
+    second:
+      variants:
+      - keywords: USE_CAUSTIC USE_LOD2 _ADDITIONAL_LIGHTS _ADDITIONAL_LIGHT_SHADOWS
+          _MAIN_LIGHT_SHADOWS_CASCADE _SHADOWS_SOFT
+        passType: 0
+      - keywords: USE_CAUSTIC USE_LOD2 _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS
+        passType: 0
+      - keywords: USE_CAUSTIC USE_LOD2 _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 0
+      - keywords: USE_CAUSTIC _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS
+        passType: 0
+      - keywords: USE_CAUSTIC _ADDITIONAL_LIGHTS _MAIN_LIGHT_SHADOWS_CASCADE
+        passType: 0
+  - first: {fileID: 4800000, guid: e51984c237adf624fa816ab6a5c96f00, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 3053b55455b17244e8745591e1aefd6a, type: 3}
+    second:
+      variants:
+      - keywords: KW_DYNAMIC_WAVES PLANAR_REFLECTION REFLECT_SUN USE_FILTERING USE_INSTANCING
+          USE_MULTIPLE_SIMULATIONS USE_REFRACTION_IOR USE_SHORELINE USE_VOLUMETRIC_LIGHT
+        passType: 0
+  - first: {fileID: 4800000, guid: 3e44305219e8e4b4d8f6f3720d936fc5, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: c2aa9315b57844f48b6bf7f3d78808c1, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: KW_DYNAMIC_WAVES USE_FILTERING USE_INSTANCING USE_MULTIPLE_SIMULATIONS
+          USE_SHORELINE
+        passType: 0
+      - keywords: KW_DYNAMIC_WAVES USE_FILTERING USE_MULTIPLE_SIMULATIONS USE_SHORELINE
+        passType: 0
+      - keywords: USE_INSTANCING
+        passType: 0
+  - first: {fileID: 4800000, guid: 6af33cc48ab40b44a85d27df8dc67c44, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: ec9fec698a3456d4fb18cf8bacb7a2bc, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: e7857e9d0c934dc4f83f270f8447b006, type: 3}
+    second:
+      variants:
+      - keywords: _BLOOM_LQ _CHROMATIC_ABERRATION _HDR_GRADING
+        passType: 0
+      - keywords: _BLOOM_LQ _HDR_GRADING
+        passType: 0
+      - keywords: _HDR_GRADING
+        passType: 0
+  - first: {fileID: 4800000, guid: 2aed67ad60045d54ba3a00c91e2d2631, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 5f1864addb451f54bae8c86d230f736e, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 36e335017ad71d54fbb10842863188ae, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 8fbe92a9edfe6074e841d6dd1509bc59, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+  - first: {fileID: 4800000, guid: 0849e84e3d62649e8882e9d6f056a017, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _GBUFFER_NORMALS_OCT _ORTHOGRAPHIC _SOURCE_DEPTH_NORMALS
+        passType: 0
+      - keywords: _GBUFFER_NORMALS_OCT _SOURCE_DEPTH_NORMALS
+        passType: 0
+  - first: {fileID: 4800000, guid: 21322c8b137c66e49b86085d3c8161f6, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 8
+  - first: {fileID: 4800000, guid: 650dd9526735d5b46b79224bc6e94025, type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: _SURFACE_TYPE_TRANSPARENT
+        passType: 0
+      - keywords: 
+        passType: 13
+  - first: {fileID: -6465566751694194690, guid: 73c7a6b0eada62c4fbeddf9c0780d402,
+      type: 3}
+    second:
+      variants:
+      - keywords: 
+        passType: 0
+      - keywords: 
+        passType: 8
+      - keywords: 
+        passType: 13
+  - first: {fileID: 4800000, guid: a449307a7b4cccf45b5b0e8cc47be915, type: 3}
+    second:
+      variants:
+      - keywords: CLOUDS CUBEMAP_CLOUD_FORMAT_RGBA GRADIENT_BACKGROUND HORIZON_FOG
+          MOON MOON_CUSTOM_TEXTURE NOISE_CLOUDS STAR_LAYER_1 SUN VERTEX_GRADIENT_BACKGROUND
+        passType: 0
+      - keywords: CLOUDS CUBEMAP_CLOUD_FORMAT_RGBA GRADIENT_BACKGROUND MOON MOON_CUSTOM_TEXTURE
+          NOISE_CLOUDS STAR_LAYER_1 SUN VERTEX_GRADIENT_BACKGROUND
+        passType: 0

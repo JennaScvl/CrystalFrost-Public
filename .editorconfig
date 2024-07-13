@@ -1,0 +1,16 @@
+# top-most EditorConfig file
+root = true
+
+# Code Files
+[*.cs]
+indent_style = tab
+
+# IDE0270: Use coalesce expression
+# If null coalescing is used on unity objects, it causes another warning:
+# UNT0007 Unity objects should not use null coalescing.
+# Unity objects should 
+dotnet_style_coalesce_expression = false
+
+# XML Files
+[*.xml]
+indent_style = tab

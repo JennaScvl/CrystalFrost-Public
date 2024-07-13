@@ -1,0 +1,6 @@
+MK Glow is what's being used to make objects glow. It makes it a lot easier to make only glow objects glow rather than everything.
+It can be obtained here: https://assetstore.unity.com/packages/vfx/shaders/fullscreen-camera-effects/mk-glow-bloom-lens-glare-90204
+If you install MK Glow into the project, be sure to go to the  Unity Editor window, click Edit, Project Settings, then select the Player tab, scroll down to Scripting Define Symbols and remove the ! from !MK_GLOW_PRESENT
+Once MK_GLOW_PRESENT is defined, click Apply and then again Edit, Preferences, External Tools tab, and regenerate project files.
+Lastly, import the "MKGlow Support" package from 'Assets/CF Packages for Commercial Assets' and drop the GlowVolume in to the BuiltIn Renderer scene's heirarchy.
+That should enable the MK GLOW code.

@@ -1,0 +1,34 @@
+{
+    "name": "CrystalFrostEngine.Tests",
+    "rootNamespace": "CrystalFrostEngine.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "CrystalFrostEngine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "Moq.dll",
+        "Microsoft.Extensions.Logging.dll",
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "Microsoft.Extensions.DependencyInjection.dll",
+        "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
+        "Microsoft.Extensions.Configuration.dll",
+        "Microsoft.Extensions.Configuration.Abstractions.dll",
+        "Microsoft.Extensions.Configuration.Json.dll",
+        "Microsoft.Extensions.Configuration.EnvironmentVariables.dll",
+        "Microsoft.Extensions.Configuration.CommandLine.dll",
+        "Microsoft.Extensions.Options.dll",
+        "Microsoft.Extensions.Options.ConfigurationExtensions.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

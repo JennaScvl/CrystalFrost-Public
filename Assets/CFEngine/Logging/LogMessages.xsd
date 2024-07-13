@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<schema id="LogMessages"
+    targetNamespace="http://tempuri.org/LogMessages.xsd"
+    elementFormDefault="qualified"
+    xmlns:lm="http://tempuri.org/LogMessages.xsd"
+    xmlns:mstns="http://tempuri.org/LogMessages.xsd"
+    xmlns="http://www.w3.org/2001/XMLSchema"
+>
+    <simpleType name="NameType">
+        <restriction base="string">
+            <pattern value="[a-zA-Z][a-zA-Z0-9_]*"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="NamespaceNameType">
+        <restriction base="string">
+            <pattern value="[a-zA-Z][a-zA-Z0-9_.]*"/>
+        </restriction>
+    </simpleType>
+
+    <simpleType name="LevelType">
+        <restriction base="string">
+            <enumeration value="Trace" />
+            <enumeration value="Debug" />
+            <enumeration value="Information" />
+            <enumeration value="Warning" />
+            <enumeration value="Error" />
+            <enumeration value="Critical" />
+            <enumeration value="None" />
+        </restriction>
+    </simpleType>
+
+    <simpleType name="MessageTextType">
+        <restriction base="string">
+        </restriction>
+    </simpleType>
+
+    <complexType name="EventType">
+        <simpleContent>
+            <extension base="lm:MessageTextType">
+                <attribute name="name" type="lm:NameType" use="required"></attribute>
+                <attribute name="level" type="lm:LevelType" use="optional"></attribute>
+                <attribute name="exception" type="boolean" use="optional"></attribute>
+            </extension>
+        </simpleContent>
+    </complexType>
+
+    <complexType name="NamespaceType">
+        <sequence>
+            <element name="Event" minOccurs="0" maxOccurs="unbounded" type="lm:EventType"/>
+        </sequence>
+        <attribute name="name" type="lm:NamespaceNameType" use="required"/>
+    </complexType>
+
+    <complexType name="LogMessagesType">
+        <sequence>
+            <element name="Namespace" minOccurs="0" maxOccurs="unbounded" type="lm:NamespaceType">
+            </element>
+        </sequence>
+    </complexType>
+
+    <element name="LogMessages" type="lm:LogMessagesType" />
+</schema>

@@ -1,0 +1,17 @@
+{
+    "name": "CrystalFrostEngine",
+    "rootNamespace": "CrystalFrost",
+    "references": [
+        "GUID:4e36fd4f1ec847c458a5e8973d99ecb3",
+        "GUID:404b61fb4fd28694b89b2ca8c38aecd8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

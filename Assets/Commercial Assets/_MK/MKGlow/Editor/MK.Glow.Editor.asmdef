@@ -1,0 +1,17 @@
+{
+    "name": "MK.Glow.Editor",
+    "references": [
+        "GUID:cb19445e095596046a336416b28b0cc9"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

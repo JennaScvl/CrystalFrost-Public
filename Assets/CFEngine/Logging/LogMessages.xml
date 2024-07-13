@@ -1,0 +1,156 @@
+﻿<LogMessages xmlns="http://tempuri.org/LogMessages.xsd">
+	<!--
+	Caution. If you add Namespaces or events to the middle, then the EventId numbers will change. 
+	Maybe no one will notice, but in case people are combing though log files looking for a specific
+	event number, they might get annoyed with you if the number they were looking for changed. 
+	-->
+	<!-- 
+	Note:
+	Namespace Names should be unique.
+	Event Names must be unique within their namespace.
+	-->
+	<Namespace name="CrystalFrost">
+		<Event name="GridClientCacheDirSet" level="Debug">
+			The GridClient ASSET_CACHE_DIR is set to {Dir:string}
+		</Event>
+		<Event name="FileNotFound" level="Information">
+			The file '{Filename:string}' does not exist.
+		</Event>
+		<Event name ="BackgroundWorkerConcurrency" level="Debug">
+			Background Worker {Name:string} is processing {Count:int} units of work.
+		</Event>
+		<Event name ="BackgroundWorkerTaskFailed" level="Error" exception="true">
+			Background Worker {Name:string} had a task fail.
+		</Event>
+		<Event name="ShutdownSignalSet" level="Information">
+			The Shutdown Signal has been set.
+		</Event>
+		<Event name="DIProviderInitialized" level="Debug">
+			DI Service Provider has been initialized.
+		</Event>
+		<Event name="DIRegisteringComponents" level="Debug">
+			Registering components in DI Container.
+		</Event>
+		<Event name="DIRegistrationComplete" level="Debug">
+			Finished registering components in the DI Container.
+		</Event>
+		<Event name="EditorEvent_AfterAssemblyReload" level="Debug">
+			Unity Editor After Assembly Reload
+		</Event>
+		<Event name="EditorEvent_BeforeAssemblyReload" level="Debug">
+			Unity Editor Before Assembly Reload
+		</Event>
+		<Event name="EditorEvent_WantsToQuit" level="Debug">
+			Unity Editor wants to quit
+		</Event>
+		<Event name="EditorEvent_Quitting" level="Debug">
+			Unity Editor quitting
+		</Event>
+		<Event name="EditorEvent_ProjectChanged" level="Debug">
+			Unity Editor project changed
+		</Event>
+		<Event name="EditorEvent_PlayModeChange" level="Debug">
+			Unity Editor play mode change: {Mode:Enum}
+		</Event>
+		<Event name="EditorEvent_PauseStateChange" level="Debug">
+			Unity Editor pause state change: {PauseState:Enum}
+		</Event>
+		<Event name="EditorEvent_HierarchyChanged" level="Debug">
+			Unity Editor hierarchy changed
+		</Event>
+		<Event name="Render_NewOrphanObject" level="Warning">
+			The Child Object {LocalID:uint} was sent to the render code before its Parent {ParentID:uint}. Object Re-enqued.
+		</Event>
+		<Event name="Render_SceneObjectNeedsRenderers" level="Debug">
+			The Object {LocalID:uint} needs renderers.
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.Client.Credentials">
+		<Event name="LoadingCredentials" level="Debug">
+			Loading Credentials
+		</Event>
+		<Event name="ErrorReadingCredentials" level="Warning" exception="true">
+			There was a problem reading the credentials file {Filename:string}
+		</Event>
+		<Event name ="SavingCredentials" level="Debug">
+			Saving Credentials
+		</Event>
+		<Event name="SavedEncryptedCredentials" level="Debug">
+			Saved Encrypted Credentials to {Filename:string}
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.Lib">
+		<Event name="UnsupportedBitDepth" level="Warning">
+			Unsupported bit depth: {BitsPerPixel:int}
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.Assets.Textures">
+		<Event name="TextureRequested" level="Debug">
+			Texture Requested: {Uuid:UUID}
+		</Event>
+		<Event name="DuplicateTextureRequest" level="Debug">
+			Duplicate Texture Request Discarded: {Uuid:UUID}
+		</Event>
+		<Event name="PendingTextureRemoved" level="Debug">
+			Texture is no longer pending: {Uuid:UUID}
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.Assets.Mesh">
+		<Event name="MeshRequested" level="Debug">
+			Mesh Requested: {Uuid:UUID}
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.WorldState">
+		<Event name="TerseObjectUpdate" level="Information">
+			Terse Object Update Recieved for {LocalID:uint}
+		</Event>
+		<Event name="ObjectUpdate" level="Information">
+			Object Update Recieved for {LocalID:uint}
+		</Event>
+		<Event name="ObjectBlockDataUpdate" level="Information">
+			Object Block Data Update Recieved for {LocalID:uint}
+		</Event>
+		<Event name="FailedAddingToWorldObjects" level="Warning">
+			Could not add {LocalID:uint} to WorldObjects.
+		</Event>
+		<Event name="FailedAddingRegionToWorld" level="Warning">
+			Could not add Region {RegionID:UUID} to world.
+		</Event>
+		<Event name="OrphanDetected" level="Information">
+			Object {LocalID:uint} has a Parent {ParentId:uint} but the parent was not found.
+		</Event>
+		<Event name="OrphanReuinited" level="Information">
+			Object {LocalID:uint} has been united with Parent {ParentId:uint}.
+		</Event>
+		<Event name="NewRegion" level="Information">
+			New Region Observed {RegionID:UUID} {Name:string}
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.UnityRendering">
+		<Event name="FailedAddingToAllSceneObjects" level="Warning">
+			Failed adding {LocalID:uint} to AllSceneObjects.
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.Scripts">
+		<Event name="LoggingOut" level="Information">
+			Attempting Logout
+		</Event>
+		<Event name="LoggingIn" level="Information">
+			Logging in as {FirstName:string}.{LastName:string} to {GridUri:string}
+		</Event>
+	</Namespace>
+	<Namespace name="CrystalFrost.Logging">
+		<Event name="LMV_Debug" level="Debug">
+			LMV-Dbug: {Message:string}
+		</Event>
+		<Event name="LMV_Information" level="Information">
+			LMV-Info: {Message:string}
+		</Event>
+		<Event name="LMV_Warning" level="Warning">
+			LMV-Warn: {Message:string}
+		</Event>
+		<Event name="LMV_Error" level="Error">
+			LMV-Fail: {Message:string}
+		</Event>
+	</Namespace>
+</LogMessages>
