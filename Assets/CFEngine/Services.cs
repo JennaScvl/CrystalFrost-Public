@@ -193,9 +193,6 @@ namespace CrystalFrost
 			// asset manager.
 			_serviceCollection.AddSingleton<IAssetManager, AssetManager>();
 
-			// LSL Preprocessor
-			_serviceCollection.AddSingleton<IFSLSLPreProc, FSLSLPreProc>();
-
 			// object pooling
 			_serviceCollection.AddSingleton<IObjectPoolingService, ObjectPoolingService>();
 

@@ -158,6 +158,8 @@ public class SimManager : MonoBehaviour
 
 	public Transform[] hudAnchors;
 
+	private bool _playerControllerAttached = false;
+
 	private IReadyTextureQueue _readyTextureQueue;
 	private IDecodedMeshQueue _decodedMeshQueue;
 
@@ -172,7 +174,6 @@ public class SimManager : MonoBehaviour
 	private IDecodedAnimationQueue _decodedAnimationQueue;
 
 	private IUnityRenderManager _renderManager;
-	private IAllSimObject _allSimObjects;
 	private ILogger<SimManager> _log;
 	private ILMVLogger _lmvLogger;
 
@@ -204,8 +205,6 @@ public class SimManager : MonoBehaviour
 			_newObjectQueue = Services.GetService<INewSimObjectQueue>();
 			_renderManager = Services.GetService<IUnityRenderManager>();
 			_needRenderDataQueue = Services.GetService<ISceneObjectsNeedingRenderersQueue>();
-			_allSimObjects = Services.GetService<IAllSimObject>();
-			_allSimObjects.ObjectUpdated += OnSimObjectUpdated;
 		}
 
 		ClientManager.assetManager.simManager = this;
@@ -389,6 +388,21 @@ public class SimManager : MonoBehaviour
 					avatar.myAvatar.parent = spd.meshHolder.transform.root;
 					avatar.myAvatar.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 					avatar.rotation = spd.prim.Rotation.ToUnity();
+
+					if (!_playerControllerAttached)
+					{
+						var avatarRoot = spd.obj.transform.root.gameObject;
+
+						// Add the movement controller
+						avatarRoot.AddComponent<MovementController>();
+
+						// Add and configure the camera controller
+						var cameraControls = Camera.main.gameObject.AddComponent<CameraControls>();
+						cameraControls.origin = avatarRoot.transform;
+
+						_playerControllerAttached = true;
+						_log.LogInformation("Attached MovementController and CameraControls to local avatar.");
+					}
 				}
 			}
 			else
@@ -1805,74 +1819,6 @@ public class SimManager : MonoBehaviour
 
 	}
 
-	private void OnSimObjectUpdated(SimObject simObject)
-	{
-		// This event is fired from a background thread, but texture/material operations must happen on the main thread.
-		// The existing AssetManager handles this by queuing texture requests.
-
-		if (!simObject.IsAvatar)
-		{
-			return; // We only care about avatar appearance updates for now.
-		}
-
-		var sceneObject = _renderManager.SceneObjects.Get(simObject.LocalID);
-		if (sceneObject == null || sceneObject.Renderers == null || sceneObject.Renderers.Length == 0)
-		{
-			// The game object for this sim object hasn't been created or doesn't have renderers yet.
-			return;
-		}
-
-		_log.LogInformation($"Applying appearance update for avatar {simObject.LocalID}");
-
-		// Each renderer corresponds to a face on the avatar mesh.
-		// We need to find the face index for each renderer.
-		// The PrimInfo component, attached to the same GameObject as the renderer, holds this.
-		foreach (var renderer in sceneObject.Renderers)
-		{
-			if (renderer == null) continue;
-
-			var primInfo = renderer.GetComponent<PrimInfo>();
-			if (primInfo != null && primInfo.face != -1)
-			{
-				ApplyAppearanceToFace(simObject, primInfo.face, renderer);
-			}
-		}
-	}
-
-	/// <summary>
-	/// Requests and applies the appropriate texture for a given face of a SimObject's primitive.
-	/// </summary>
-	/// <param name="simObject">The simulation object with the texture data.</param>
-	/// <param name="faceIndex">The index of the face to texture.</param>
-	/// <param name="renderer">The renderer to apply the texture to.</param>
-	private void ApplyAppearanceToFace(SimObject simObject, int faceIndex, Renderer renderer)
-	{
-		if (simObject.Prim.Textures == null)
-		{
-			_log.LogError($"SimObject {simObject.LocalID} has no Textures property to apply.");
-			return;
-		}
-
-		TextureEntryFace textureEntryFace = simObject.Prim.Textures.GetFace((uint)faceIndex);
-		if (textureEntryFace == null)
-		{
-			_log.LogWarning($"Could not get TextureEntryFace for face {faceIndex} on object {simObject.LocalID}");
-			return;
-		}
-
-		Color color = textureEntryFace.RGBA.ToUnity();
-
-		// Use the existing AssetManager to request the texture.
-		// This will handle downloading, caching, and applying the texture to the material.
-		ClientManager.assetManager.RequestTexture(
-			textureEntryFace.TextureID,
-			renderer,
-			faceIndex,
-			color,
-			textureEntryFace.Glow,
-			textureEntryFace.Fullbright
-		);
-	}
 }
 
 public struct MovePrims : IJobParallelFor

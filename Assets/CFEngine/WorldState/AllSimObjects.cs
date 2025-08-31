@@ -1,4 +1,4 @@
-using CrystalFrost.UnityRendering;
+﻿using CrystalFrost.UnityRendering;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -9,11 +9,6 @@ namespace CrystalFrost.WorldState
 {
 	public interface IAllSimObject
 	{
-		/// <summary>
-		/// Fires when an existing SimObject is updated.
-		/// </summary>
-		event Action<SimObject> ObjectUpdated;
-
 		/// <summary>
 		/// Returns the object or null if not found.
 		/// </summary>
@@ -40,8 +35,6 @@ namespace CrystalFrost.WorldState
 		private readonly ILogger<AllSimObjects> _log;
 		private readonly INewSimObjectQueue _newSimObjectQueue;
 
-		public event Action<SimObject> ObjectUpdated;
-
 		public AllSimObjects(ILogger<AllSimObjects> log,
 			INewSimObjectQueue newSimObjectQueue)
 		{
@@ -57,18 +50,10 @@ namespace CrystalFrost.WorldState
 
 		public SimObject AddOrUpdate(uint localID, Func<SimObject> buildNew, Func<SimObject, SimObject> update)
 		{
-			bool isNew = !_objects.ContainsKey(localID);
-
 			var result = _objects.AddOrUpdate(
 				localID,
 				(id) => buildNew(),
 				(id, existing) => update(existing));
-
-			if (!isNew)
-			{
-				// This was an update to an existing object, fire the event
-				ObjectUpdated?.Invoke(result);
-			}
 
 			// try to setup the parent.
 			if (result.IsOrphan())
