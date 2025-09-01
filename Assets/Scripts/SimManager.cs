@@ -216,6 +216,11 @@ public class SimManager : MonoBehaviour
 			this.meshObjectManager = FindFirstObjectByType<MeshObjectManager>();
 		}
 
+		// Ensure there is an InteractionManager in the scene
+		if (FindObjectOfType<InteractionManager>() == null)
+		{
+			gameObject.AddComponent<InteractionManager>();
+		}
 	}
 
 	void Start()
