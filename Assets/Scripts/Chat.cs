@@ -24,7 +24,7 @@ public class Chat : MonoBehaviour
     //public GameObjec
     public GameObject chatTabButtonPrefab;
 	public GameObject nearbyButton;
-    public Transform chatTabRoot;
+    public Transform chatTabRoot; // A VerticalLayoutGroup should be attached to this object's GameObject.
 	public TMP_InputField input;
 	public TMP_Text inputText;
 	UUID selectedChat = UUID.Zero;
@@ -58,25 +58,10 @@ public class Chat : MonoBehaviour
 		ClientManager.client.Self.ChatFromSimulator += new EventHandler<ChatEventArgs>(ChatFromSimulator);
 
 		tabs.TryAdd(UUID.Zero, new ChatTab() { log = string.Empty, name = "Local Chat", tabButton = nearbyButton, uuid = UUID.Zero});
-
-		//just storing this here for future use, no reason for why here, just here
-		//AudioClip clip;
-		//clip.SetData()
-		/*using (var vorbis = new NVorbis.VorbisReader(new MemoryStream(sample_data, false)))
-		{
-			Debug.Log($"Found ogg ch={vorbis.Channels} freq={vorbis.SampleRate} samp={vorbis.TotalSamples}");
-			float[] _audioBuffer = new float[vorbis.TotalSamples]; // Just dump everything
-			int read = vorbis.ReadSamples(_audioBuffer, 0, (int)vorbis.TotalSamples);
-			AudioClip audioClip = AudioClip.Create(samplename, (int)(vorbis.TotalSamples / vorbis.Channels), vorbis.Channels, vorbis.SampleRate, false);
-			audioClip.SetData(_audioBuffer, 0);
-			samples.Add(audioClip);
-		}*/
-
 	}
 
 	void IncomingIM(object sender, InstantMessageEventArgs e)
     {
-		//Debug.Log($"Incoming IM from: {e.IM.FromAgentName}: {e.IM.Message}");
         imEvents.Enqueue(e);
     }
 
@@ -90,11 +75,11 @@ public class Chat : MonoBehaviour
 	{
 		if ((int)e.Type <= 3)
 		{
-			string chat = ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: {e.Message}").Replace("<", "<\u200B"); ;
-			//chat = Regex.Replace(chat, "<.*?>", String.Empty);
-
+			string chat;
 			try
 			{
+				chat = ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: {e.Message}").Replace("<", "<\u200B"); ;
+
 				if (e.Type == ChatType.Whisper)
 				{
 					chat = $"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: <i><size=80%>{e.Message}</size></i>";
@@ -103,12 +88,11 @@ public class Chat : MonoBehaviour
 				{
 					chat = $"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: <b><size=120%>{e.Message}</size></b>";
 				}
-				//Debug.Log(chat);
 				chatStrings.Enqueue(chat);
-
 			}
-			catch
+			catch (Exception ex)
 			{
+				Debug.LogError($"Error processing incoming chat message: {ex.Message}");
 			}
 		}
 	}
@@ -124,12 +108,11 @@ public class Chat : MonoBehaviour
                 chat = ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {e.IM.FromAgentName}: {e.IM.Message}").Replace("<", "<\u200B");
 				if (tabs.ContainsKey(e.IM.FromAgentID))
 				{
-					//Debug.Log("Current IM session");
                     tabs[e.IM.FromAgentID].log += "\n" + chat;
 				}
                 else
                 {
-					//Debug.Log("New IM session");
+					// A VerticalLayoutGroup on the parent will handle positioning.
 					GameObject b = Instantiate(nearbyButton, nearbyButton.transform.parent, true);
 					ChatTab chatTab = new()
 					{
@@ -139,21 +122,7 @@ public class Chat : MonoBehaviour
 						tabButton = b
 					};
 
-
-					//RectTransform rect = b.GetComponent<RectTransform>();
-
-					//b.transform.parent = chatTabRoot;
 					ClientManager.soundManager.PlayUISound(new UUID("67cc2844-00f3-2b3c-b991-6418d01e1bb7"));
-					RectTransform rect = b.GetComponent<RectTransform>();
-					Vector2 anchoredPos = rect.anchoredPosition;
-					anchoredPos.y -= 30f;
-					rect.anchoredPosition = anchoredPos;
-
-					//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
-					//rect.localPosition = rect.anchoredPosition; 
-					//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
-					//b.transform.localScale = nearbyButton.transform.localScale;
-					//b.transform.localScale = Vector3.one;
 
 					UI_IMButton button = chatTab.tabButton.GetComponent<UI_IMButton>();
                     button.buttonText.text = chatTab.name;
@@ -166,13 +135,12 @@ public class Chat : MonoBehaviour
 			{
 				log.text = tabs[e.IM.FromAgentID].log;
 			}
-
 		}
 	}
 
 	public void StartIM(UUID agentID)
 	{
-		Debug.Log("New IM session");
+		// A VerticalLayoutGroup on the parent will handle positioning.
 		GameObject b = Instantiate(nearbyButton, nearbyButton.transform.parent, true);
 		string name = "Loading...";
 		if(avatarNames.ContainsKey(agentID))name = avatarNames[agentID];
@@ -183,21 +151,6 @@ public class Chat : MonoBehaviour
 			log = string.Empty,
 			tabButton = b
 		};
-
-		//RectTransform rect = b.GetComponent<RectTransform>();
-
-		//b.transform.parent = chatTabRoot;
-
-		RectTransform rect = b.GetComponent<RectTransform>();
-		Vector2 anchoredPos = rect.anchoredPosition;
-		anchoredPos.y -= 30f;
-		rect.anchoredPosition = anchoredPos;
-
-		//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
-		//rect.localPosition = rect.anchoredPosition; 
-		//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
-		//b.transform.localScale = nearbyButton.transform.localScale;
-		//b.transform.localScale = Vector3.one;
 
 		UI_IMButton button = chatTab.tabButton.GetComponent<UI_IMButton>();
 		button.buttonText.text = chatTab.name;
@@ -267,17 +220,14 @@ public class Chat : MonoBehaviour
 				if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
 				{
 					ClientManager.client.Self.Chat(inputText.text, 0, ChatType.Shout);
-					//Debug.Log("Shout");
 				}
 				else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
 				{
 					ClientManager.client.Self.Chat(inputText.text, 0, ChatType.Whisper);
-					//Debug.Log("Whisper");
 				}
 				else
 				{
 					ClientManager.client.Self.Chat(inputText.text, 0, ChatType.Normal);
-					//Debug.Log("Normal");
 				}
 				input.text = string.Empty;
 			}
@@ -295,11 +245,5 @@ public class Chat : MonoBehaviour
 
 		dummyButton.Select();
 		input.DeactivateInputField();
-		//dummyButton.
-
-
-
 	}
-
-
 }
