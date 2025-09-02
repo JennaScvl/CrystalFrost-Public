@@ -22,6 +22,7 @@ using CrystalFrost.Scripts;
 using CrystalFrost.Timing;
 
 using Microsoft.Extensions.Logging;
+using Temp;
 using static System.Net.WebRequestMethods;
 //using UnityEditor.PackageManager;
 //using OpenMetaverse.ImportExport.Collada14;
@@ -69,8 +70,26 @@ public class Login : MonoBehaviour
 	[SerializeField]
 	GameObject consoleUI;
 
+	public Terrain terrainPrefab;
 	readonly LoginDetails loginDetails;
 
+	public UUID GroupID = UUID.Zero;
+	public Dictionary<UUID, GroupMember> GroupMembers;
+	public Dictionary<UUID, AvatarAppearancePacket> Appearances = new();
+	//public Dictionary<string, Command> Commands = new Dictionary<string, Command>();
+	public bool Running = true;
+	public bool GroupCommands = false;
+	public string MasterName = string.Empty;
+	public UUID MasterKey = UUID.Zero;
+	public bool AllowObjectMaster = false;
+	//public ClientManager ClientManager;
+	//public VoiceManager VoiceManager;
+	// Shell-like inventory commands need to be aware of the 'current' inventory folder.
+	public InventoryFolder CurrentDirectory = null;
+
+	private readonly System.Timers.Timer updateTimer;
+	private UUID GroupMembersRequestID;
+	public Dictionary<UUID, Group> GroupsCache = null;
 	//UnityEngine.Vector3 vector3;
 	//OpenMetaverse.Vector3 vector3omv;
 
@@ -81,6 +100,11 @@ public class Login : MonoBehaviour
 	private ILoginUriProvider _loginUriProvider;
 
 	private CrystalFrost.Client.Credentials.LoginCredential _currentCredential;
+
+	public ulong GetNorth(ulong handle) => (handle & 0xFFFFFFFF00000000) | ((uint)handle + 256);
+	public ulong GetSouth(ulong handle) => (handle & 0xFFFFFFFF00000000) | ((uint)handle - 256);
+	public ulong GetEast(ulong handle) => (((ulong)((uint)(handle >> 32) + 256)) << 32) | (uint)handle;
+	public ulong GetWest(ulong handle) => (((ulong)((uint)(handle >> 32) - 256)) << 32) | (uint)handle;
 
 	void Awake()
 	{
@@ -135,7 +159,14 @@ public class Login : MonoBehaviour
 
 	}
 
-	public Terrain terrainPrefab;
+	private void OnDestroy()
+	{
+		ClientManager.client.Network.SimConnected -= new EventHandler<SimConnectedEventArgs>(SimConnectedEventHandler);
+		ClientManager.client.Network.SimConnecting -= new EventHandler<SimConnectingEventArgs>(SimConnectingEventHandler);
+		ClientManager.client.Network.SimDisconnected -= new EventHandler<SimDisconnectedEventArgs>(SimDisconnectedEventHandler);
+		ClientManager.client.Network.SimChanged -= new EventHandler<SimChangedEventArgs>(SimChangedEventHandler);
+		ClientManager.client.Self.RegionCrossed -= new EventHandler<RegionCrossedEventArgs>(RegionCrossedEventHandler);
+	}
 
 	//RegionCrossedEventArgs>(RegionCrossedEventHandler
 	public void RegionCrossedEventHandler(object sender, RegionCrossedEventArgs e)
@@ -205,12 +236,6 @@ public class Login : MonoBehaviour
 		}
 	}
 
-	public ulong GetNorth(ulong handle) => (handle & 0xFFFFFFFF00000000) | ((uint)handle + 256);
-	public ulong GetSouth(ulong handle) => (handle & 0xFFFFFFFF00000000) | ((uint)handle - 256);
-	public ulong GetEast(ulong handle) => (((ulong)((uint)(handle >> 32) + 256)) << 32) | (uint)handle;
-	public ulong GetWest(ulong handle) => (((ulong)((uint)(handle >> 32) - 256)) << 32) | (uint)handle;
-
-
 	public void SimDisconnectedEventHandler(object sender, SimDisconnectedEventArgs e)
 	{
 		if (ClientManager.IsMainThread)
@@ -218,8 +243,7 @@ public class Login : MonoBehaviour
 			//ClientManager.simManager.simulators.Remove(e.Simulator.Handle);
 			Debug.Log($"GRIDEVENT: Disconnected from sim: {e.Simulator.Name} / {e.Simulator.Handle} / {e.Reason}");
 			Destroy(ClientManager.simManager.simulators[e.Simulator.Handle].transform.gameObject);
-			SimManager.SimulatorContainer simCont;
-			ClientManager.simManager.simulators.TryRemove(e.Simulator.Handle, out simCont);
+			ClientManager.simManager.simulators.TryRemove(e.Simulator.Handle, out var simCont);
 		}
 		else
 		{
@@ -515,23 +539,6 @@ public class Login : MonoBehaviour
 #endif
 	}
 
-	public UUID GroupID = UUID.Zero;
-	public Dictionary<UUID, GroupMember> GroupMembers;
-	public Dictionary<UUID, AvatarAppearancePacket> Appearances = new();
-	//public Dictionary<string, Command> Commands = new Dictionary<string, Command>();
-	public bool Running = true;
-	public bool GroupCommands = false;
-	public string MasterName = string.Empty;
-	public UUID MasterKey = UUID.Zero;
-	public bool AllowObjectMaster = false;
-	//public ClientManager ClientManager;
-	//public VoiceManager VoiceManager;
-	// Shell-like inventory commands need to be aware of the 'current' inventory folder.
-	public InventoryFolder CurrentDirectory = null;
-
-	private readonly System.Timers.Timer updateTimer;
-	private UUID GroupMembersRequestID;
-	public Dictionary<UUID, Group> GroupsCache = null;
 
 	//private readonly ManualResetEvent GroupsEvent = new ManualResetEvent(false);
 

@@ -351,20 +351,10 @@ public static class ScenePrimDataExtensions
 
 	public static void Render(this ScenePrimData spd)
 	{
-		MeshRenderer mr;
-		//if (prim.IsAttachment)
-		//{
-		mr = spd.obj.GetComponent<MeshRenderer>();
+		var mr = spd.obj.GetComponent<MeshRenderer>();
 		mr.enabled = false;
-		//	return;
-		//}
 		if (spd.renderers != null)
 		{
-			foreach (Renderer r in spd.renderers)
-			{
-				if (r != null) r.enabled = true;//DestroyImmediate(r.gameObject);
-			}
-			//renderers = null;
 #if USE_KWS
 			if (spd.isWater)
 			{
@@ -429,8 +419,7 @@ public static class ScenePrimDataExtensions
             hdlight.intensity = prim.Light.Intensity * 10000000f;
             hdlight.range = prim.Light.Radius;
             */
-
-			GameObject golight = SimManager.Instantiate<GameObject>(ResourceCache.pointLight);
+			GameObject golight = SimManager.Instantiate(ResourceCache.pointLight);
 			golight.transform.parent = spd.obj.transform;
 			//children.Add(golight);
 			golight.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);

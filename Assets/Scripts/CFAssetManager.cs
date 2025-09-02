@@ -18,6 +18,7 @@ using CrystalFrost.Lib;
 using CrystalFrost.Extensions;
 using Microsoft.Extensions.Logging;
 using CrystalFrost.Assets.Mesh;
+using Temp;
 using Unity.VisualScripting;
 
 namespace CrystalFrost
@@ -63,116 +64,6 @@ namespace CrystalFrost
 		public List<MeshRenderer> fullbrights = new();
 
 		public Material zeroMaterial;
-		public class MaterialContainer
-		{
-			public bool ready = false;
-			public Material materialOpaque;
-			public Material materialAlpha;
-			public Material materialOpaqueFullbright;
-			public Material materialAlphaFullbright;
-			public Texture2D texture;
-			public uint components;
-			public UUID uuid;
-
-			//attempting to rewrite this to branchless
-			/*public Material GetMaterial(Color color, float glow, bool fullbright)
-			{
-				if (components == 3)
-				{
-					return GetMaterialOpaque(color, glow, fullbright);
-				}
-				else// if(components == 4)
-				{
-					return GetMaterialOpaque(color, glow, fullbright);
-				}
-			}*/
-
-			//attempted branchless refactor
-			public Material GetMaterial(Color color, float glow, bool fullbright)
-			{
-				// An array of function delegates
-				Func<Color, float, bool, Material>[] functions = new Func<Color, float, bool, Material>[]
-				{
-					GetMaterialOpaque,
-					GetMaterialAlpha
-				};
-
-				// Using the value of components as an index into the array
-				return functions[components - 3](color, glow, fullbright);
-			}
-
-
-			public Material GetMaterialOpaque(Color color, float glow, bool fullbright)
-			{
-				Material mat = fullbright ? ResourceCache.opaqueFullbrightMaterial : ResourceCache.opaqueMaterial;
-
-				if (materialOpaque == null)
-				{
-					materialOpaque = Material.Instantiate(mat);
-#if UNITY_EDITOR
-					materialOpaque.name = $"opaque {uuid}";
-#endif
-					materialOpaque.SetTexture(ClientManager.DiffuseName, texture);
-				}
-
-				if (components == 4 || color.a < 0.999f) return GetMaterialAlpha(color, glow, fullbright);
-
-				bool colorChange = color.r < 0.999f || color.g < 0.999f || color.b < 0.999f || glow > 0.001f || fullbright;
-
-				if (colorChange)
-				{
-					mat = Material.Instantiate(materialOpaque);
-					mat.SetColor(ClientManager.ColorName, color);
-					if (fullbright || glow > 0.001f)
-					{
-						Color emissiveColor = color * (fullbright ? 1.0001f : ((1f + glow) * 2f));
-						mat.SetColor(ClientManager.EmissiveColorName, emissiveColor);
-						mat.SetTexture(ClientManager.EmissiveMapName, texture);
-					}
-					return mat;
-				}
-
-				return materialOpaque;
-			}
-			public Material GetMaterialAlpha(Color color, float glow, bool fullbright)
-			{
-				Material mat = fullbright ? ResourceCache.alphaFullbrightMaterial : ResourceCache.alphaMaterial;
-
-				if (materialAlpha == null)
-				{
-					materialAlpha = Material.Instantiate(mat);
-#if UNITY_EDITOR
-					materialAlpha.name = $"alpha {uuid}";
-#endif
-					materialAlpha.SetTexture(ClientManager.DiffuseName, texture);
-				}
-
-				bool colorChange = color.r < 0.999f || color.g < 0.999f || color.b < 0.999f || color.a < 0.999f || glow > 0.001f || fullbright;
-
-				if (colorChange)
-				{
-					mat = Material.Instantiate(materialAlpha);
-					mat.SetColor(ClientManager.ColorName, color);
-					if (fullbright || glow > 0.001f)
-					{
-						Color emissiveColor = color * (fullbright ? 1.0001f : ((1f + glow) * 2f));
-						mat.SetColor(ClientManager.EmissiveColorName, emissiveColor);
-						mat.SetTexture(ClientManager.EmissiveMapName, texture);
-					}
-					return mat;
-				}
-
-				return materialAlpha;
-			}
-
-
-			public MaterialContainer(UUID uuid, Texture2D texture, uint components)
-			{
-				this.uuid = uuid;
-				this.texture = texture;
-				this.components = components;
-			}
-		}
 
 		public Dictionary<UUID, MaterialContainer> materialContainer = new();
 
@@ -278,7 +169,6 @@ namespace CrystalFrost
 
 
 
-
 		public class SculptData
 		{
 			public GameObject gameObject;
@@ -298,17 +188,9 @@ namespace CrystalFrost
 			//so that it can be applied once the data is ready
 			requestedMeshes.TryAdd(prim.Sculpt.SculptTexture, new List<SculptData>());
 			requestedMeshes[prim.Sculpt.SculptTexture].Add(sculptdata);
-
-			_ = System.Threading.Tasks.Task.Run(() =>
-			{
-				ClientManager.client.Assets.RequestImage(prim.Sculpt.SculptTexture, CallbackSculptTexture);
-			});
+			ClientManager.client.Assets.RequestImage(prim.Sculpt.SculptTexture, CallbackSculptTexture);
 		}
 
-		//callback that receives sculpt texture from the server,
-		//then processes it into a mesh for use in Unity
-		//if multithreaded sculpts are enabled, it adds data to a
-		//ConcurrentQueue to be processed on the main thread
 		public void CallbackSculptTexture(TextureRequestState state, AssetTexture assetTexture)
 		{
 			if (state != TextureRequestState.Finished) return;
@@ -346,18 +228,8 @@ namespace CrystalFrost
 				// Catch all exception cases individually
 			}
 
-			int j;
 
-			foreach (SimManager.MeshRequestData mrd in simManager.meshRequests)
-			{
-				if (simManager.scenePrims.ContainsKey(mrd.localID))
-				{
-					simManager.scenePrims[mrd.localID].renderers = new Renderer[48];
-				}
-
-			}
-
-			for (j = 0; j < fmesh.Faces.Count; j++)
+			for (var j = 0; j < fmesh.Faces.Count; j++)
 			{
 
 				if (fmesh.Faces[j].Vertices.Count == 0)
@@ -383,8 +255,6 @@ namespace CrystalFrost
 #endif
 		}
 
-		//Reinitialize a texture for use as a shaded texture
-		//multi-threaded version.         
 		public void MainThreadTextureReinitialize(byte[] bytes, UUID uuid, int width, int height, int components)
 		{
 			DebugStatsManager.AddStateUpdate(DebugStatsType.DecodedTextureProcess, uuid.ToString());
@@ -392,27 +262,26 @@ namespace CrystalFrost
 			if (components == 3)
 			{
 				materialContainer[uuid].texture.Reinitialize(width, height, TextureFormat.RGB24, false);
-				//materialContainer[uuid].texture.Reinitialize(width, height, TextureFormat.BGRA32, false);
 			}
 			else
 			{
 				materialContainer[uuid].texture.Reinitialize(width, height, TextureFormat.RGBA32, false);
-				//materialContainer[uuid].texture.Reinitialize(width, height, TextureFormat.ARGB32, false);                
-				//materialContainer[uuid].texture.Reinitialize(width, height, TextureFormat.BGRA32, false);
 			}
 
 			materialContainer[uuid].texture.SetPixelData(bytes, 0);
 			materialContainer[uuid].texture.name = $"{uuid} Comp:{components}";
 			materialContainer[uuid].texture.Apply();
-			materialContainer[uuid].texture.Compress(false);
+			
+			// compression was called way too often. reduced quality of images,
+			// tanked framerate, and somehow increased render performance lol.
+			// materialContainer[uuid].texture.Compress(false);
 			materialContainer[uuid].components = (uint)components;
-			int i;
 
 			List<Renderer> removeMaterials = new();
 			DissolveIn dis;
 			if (components == 4)
 			{
-				for (i = 0; i < materials[uuid].Count; i++)
+				for (var i = 0; i < materials[uuid].Count; i++)
 				{
 					if (materials[uuid][i] == null) continue;
 

@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using OMV = OpenMetaverse;
 using UnityEngine;
 using System.Text;
-
+using Temp;
 
 
 /// <summary>
@@ -151,7 +151,7 @@ public class SimTerrainHeightMap : SimTerrain
     /// Note that this is called outside the context of an enclosing SimTerrain
     /// so the simulator passed is the one used.
     /// </summary>
-	public override void TerrainUpdate(SimManager.SimulatorContainer pSimContainer)
+	public override void TerrainUpdate(SimulatorContainer pSimContainer)
 	{
         // Debug.Log($"SimTerrainHeightMap.TerrainUpdate: {pSimContainer.sim.Name}");
         SimTerrainHeightMap terrain = pSimContainer.terrain as SimTerrainHeightMap;
@@ -413,7 +413,7 @@ public class SimTerrainHeightMap : SimTerrain
     /// Compute the terrain covering texture (splat) from the terrain heights.
     /// </summary>
     /// <param name="pSimContainer"></param>
-	public static void TerrainApplyTerrainSplatting(SimManager.SimulatorContainer pSimContainer)
+	public static void TerrainApplyTerrainSplatting(SimulatorContainer pSimContainer)
 	{
 		Debug.Log($"Applying Terrain Splats {pSimContainer.sim.Name}");
         SimTerrainHeightMap terrain = pSimContainer.terrain as SimTerrainHeightMap;

@@ -2,13 +2,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Linq; // used for Sum of array
-
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine;
-
 using OpenMetaverse;
 using static OpenMetaverse.Primitive;
 
@@ -27,8 +26,6 @@ using CrystalFrost.Lib;
 using CrystalFrost.Logging;
 using CrystalFrost.UnityRendering;
 using CrystalFrost.WorldState;
-using CrystalFrost.ObjectPooling;
-
 using Unity.VisualScripting;
 
 #if USE_KWS
@@ -41,115 +38,39 @@ using Funly.SkyStudio;
 #endif
 
 using static Bunny.HUDHelper;
-using OMVVector2 = OpenMetaverse.Vector2;
 using OMVVector3 = OpenMetaverse.Vector3;
-using Vector2 = UnityEngine.Vector2;
 using Vector3 = UnityEngine.Vector3;
-using Mesh = UnityEngine.Mesh;
 using Material = UnityEngine.Material;
 using Quaternion = UnityEngine.Quaternion;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using OpenMetaverse.ImportExport.Collada14;
-//using Unity.VisualScripting.YamlDotNet.Core.Tokens;
-//using static UnityEditor.Experimental.GraphView.GraphView;
-using UnityEngine.Rendering;
 using CrystalFrost.Assets.Animation;
-using OpenMetaverse.Packets;
+using Temp;
 using UnityEngine.Animations;
+using Util;
+using Debug = UnityEngine.Debug;
 
 public class SimManager : MonoBehaviour
 {
-	// Start is called before the first frame update
-	GridClient client;
-	public string simName;
-	public string simOwner;
-	public ulong thissim;
-	public Simulator _thissim;
+	const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
+	const float RAD_TO_DEG = 57.295779513082320876798154814105f;
 
-	/// <summary>
-	/// Keeps pointers, terrain, and details of individual regions.
-	/// Takes the events from the region and updates terrain, objects, and avatars.
-	/// </summary>
-	public class SimulatorContainer
-	{
-		// Handle to the OpenMetaverse Simulator object
-		public Simulator sim;
+	[SerializeField] Transform player;
+	[SerializeField] GameObject cube;
+	[SerializeField] GameObject blank;
+	[SerializeField] Material opaqueMat;
+	[SerializeField] Material opaqueFullBrightMat;
+	[SerializeField] Material alphaMat;
+	[SerializeField] Material alphaFullBrightMat;
 
-		// Terrain that is built an managed for this region. Includes building mesh and splats
-		public SimTerrain terrain;
+	public Transform water;
 
-		// Region's location in the simulator grid
-		public uint x;
-		public uint y;
-
-		// Region size in meters
-		public uint sizeX;
-		public uint sizeY;
-
-		public float age = 0f;
-
-		// The region's graphics location in the scene
-		public Transform transform { get { return terrain.Transform; } }
-
-		public SimulatorContainer(Simulator sim, uint x, uint y)
-		{
-			this.sim = sim;
-			this.sizeX = sim.SizeX;
-			this.sizeY = sim.SizeY;
-			this.x = x;
-			this.y = y;
-
-			terrain = new SimTerrainTiles(sim);
-			/*  Used to use heightmap for smaller regions, but Tiles is better for both
-            if (sizeX > 256 || sizeY > 256)
-            {
-                terrain = new SimTerrainTiles(sim);
-            }
-            else
-            {
-                terrain = new SimTerrainHeightMap(sim);
-            }
-            */
-			Debug.Log($"SimulatorContainer: creation: name={sim.Name}, loc={x}/{y}, sz={sizeX}/{sizeY}");
-		}
-	}
+	public Queue<PrimEventArgs> objectsToRez = new();
 
 	/// <summary>
 	/// All the known simulators indexed by their handle
 	/// </summary>
-	public ConcurrentDictionary<ulong, SimulatorContainer> simulators = new ConcurrentDictionary<ulong, SimulatorContainer>();
-	// Do an action on all the simulators
-	// TODO: Figure out locking (should list be locked when iterating?). Maybe use yield return?
-	public void ForEachSimContainer(Action<SimulatorContainer> action)
-	{
-		foreach (var kvp in simulators)
-		{
-			action(kvp.Value);
-		}
-	}
-
-	[SerializeField]
-	Transform player;
-	[SerializeField]
-	GameObject cube;
-	[SerializeField]
-	GameObject blank;
-	[SerializeField]
-	Material opaqueMat;
-	[SerializeField]
-	Material opaqueFullBrightMat;
-	[SerializeField]
-	Material alphaMat;
-	[SerializeField]
-	Material alphaFullBrightMat;
-
-	public Transform water;
-	//List<prims>
-
-	public Queue<PrimEventArgs> objectsToRez = new();
-	//List<TerseObjectUpdateEventArgs> terseRobjectsUpdates = new List<TerseObjectUpdateEventArgs>();
+	public readonly ConcurrentDictionary<ulong, SimulatorContainer> simulators = new();
 
 	Avatar avatar;
 	public BoundsOctree<GameObject> boundsTree = new(15, new Vector3(127, 0, 127), 1, 1.25f);
@@ -160,11 +81,9 @@ public class SimManager : MonoBehaviour
 
 	private IReadyTextureQueue _readyTextureQueue;
 	private IDecodedMeshQueue _decodedMeshQueue;
+	private static readonly WaitForSecondsRealtime Wait100ms = new(0.1f);
 
-
-
-
-	private IAssetManager _assetManager;
+	// private IAssetManager _assetManager;
 	private CodeConfig _config;
 	private IStateManager _stateManager;
 	private INewSimObjectQueue _newObjectQueue;
@@ -174,15 +93,66 @@ public class SimManager : MonoBehaviour
 	private IUnityRenderManager _renderManager;
 	private ILogger<SimManager> _log;
 	private ILMVLogger _lmvLogger;
+	public Transform sun;
 
-	private ConcurrentQueue<Tuple<Primitive, UUID>> _loadedAnimationRequest = new();
 
-	public class AnimatedTextureData
+	// Start is called before the first frame update
+	GridClient client;
+	public string simName;
+	public string simOwner;
+	public ulong thissim;
+	public Simulator _thissim;
+	public bool scenePrimsContainsAvatar = false;
+
+	public ConcurrentDictionary<UUID, uint> scenePrimIndexUUID = new();
+	public ConcurrentDictionary<uint, ScenePrimData> scenePrims = new();
+	public Dictionary<uint, List<Primitive>> orphanedPrims = new();
+	public List<MeshRequestData> meshRequests = new();
+
+	/// <summary>
+	/// Honestly not sure what this update event is even about
+	/// The documentation on libOpenMetaverse and libreMetaverse
+	/// is incredibly scant, but it appears to be
+	/// Yet Another Prim Update Event
+	/// </summary>
+	public ConcurrentQueue<ObjectDataBlockUpdateEventArgs> objectDataBlockUpdates = new();
+
+	private readonly ConcurrentQueue<KillObjectEventData> _killObjectQueue = new();
+	private readonly ConcurrentQueue<Tuple<Primitive, UUID>> _loadedAnimationRequest = new();
+	private readonly ConcurrentQueue<AvatarUpdateEventArgs> _avatarUpdates = new();
+	private readonly ConcurrentQueue<ObjectPropertiesUpdatedEventArgs> _objectPropertiesUpdateEvents = new();
+	private readonly ConcurrentQueue<ObjectPropertiesEventArgs> _objectPropertiesEvents = new();
+	private readonly ConcurrentQueue<UUIDNameReplyEvent> _nameReplyEvents = new();
+	private ConcurrentQueue<ScenePrimData> unTexturedPrims = new();
+
+	void AvatarNamesEventHandler(object sender, UUIDNameReplyEventArgs e)
 	{
-		TextureAnimation textureAnimation;
-		int currentFrame;
-		float lastFrameTime;
-		float frameTime;
+		foreach (KeyValuePair<UUID, string> kvp in e.Names)
+		{
+			if (scenePrimIndexUUID.ContainsKey(kvp.Key))
+			{
+				if (scenePrims.TryGetValue(scenePrimIndexUUID[kvp.Key], out ScenePrimData sPrim))
+				{
+					//Debug.Log($"NAME RECEIVED: {kvp.Value}");
+					_nameReplyEvents.Enqueue(new UUIDNameReplyEvent { uuid = kvp.Key, name = kvp.Value });
+					//UnityMainThreadDispatcher.Instance().Enqueue(() => sPrim.SetName(kvp.Value));
+				}
+			}
+			else
+			{
+				ClientManager.client.Avatars.RequestAvatarName(kvp.Key);
+			}
+		}
+	}
+
+	// Do an action on all the simulators
+	// TODO: Figure out locking (should list be locked when iterating?). Maybe use yield return?
+	private void ForEachSimContainer(Action<SimulatorContainer> action)
+	{
+		foreach (var kvp in simulators)
+		{
+			action(kvp.Value);
+		}
 	}
 
 	private void Awake()
@@ -191,7 +161,8 @@ public class SimManager : MonoBehaviour
 		_lmvLogger = Services.GetService<ILMVLogger>(); // just needs to exist to function.
 		_readyTextureQueue = Services.GetService<IReadyTextureQueue>();
 		_decodedMeshQueue = Services.GetService<IDecodedMeshQueue>();
-		_assetManager = Services.GetService<IAssetManager>();
+
+		// _assetManager = Services.GetService<IAssetManager>();
 		_decodedAnimationQueue = Services.GetService<IDecodedAnimationQueue>();
 		_config = Services.GetService<IOptions<CodeConfig>>().Value;
 
@@ -213,44 +184,53 @@ public class SimManager : MonoBehaviour
 			Debug.LogWarning("MeshObjectManager not set in SimManager, trying to find it");
 			this.meshObjectManager = FindFirstObjectByType<MeshObjectManager>();
 		}
-
 	}
 
-	void Start()
+	private void Start()
 	{
 		client = ClientManager.client;
 
 		avatar = gameObject.GetComponent<Avatar>();
-		//Texture2D zeroTexture = Texture2D.whiteTexture
-		ClientManager.assetManager.materialContainer.Add(UUID.Zero, new MaterialContainer(UUID.Zero, Texture2D.whiteTexture, 3));
-		//StartCoroutine(TimerRoutine());
-		//if (ClientManager.viewDistance >= 32f)
-		//{
-		client.Objects.AvatarUpdate += new EventHandler<AvatarUpdateEventArgs>(AvatarUpdateHandler);
-		client.Objects.KillObject += new EventHandler<KillObjectEventArgs>(KillObjectEventHandler);
-		client.Objects.KillObjects += new EventHandler<KillObjectsEventArgs>(KillObjectsEventHandler);
-		client.Objects.ObjectDataBlockUpdate += new EventHandler<ObjectDataBlockUpdateEventArgs>(ObjectDataBlockUpdateEvent);
-		client.Objects.ObjectProperties += new EventHandler<ObjectPropertiesEventArgs>(ObjectPropertiesEventHandler);
-		client.Objects.ObjectPropertiesUpdated += new EventHandler<ObjectPropertiesUpdatedEventArgs>(ObjectPropertiesUpdateHandler);
-		client.Objects.ObjectUpdate += new EventHandler<PrimEventArgs>(Objects_ObjectUpdate);
-		client.Objects.PhysicsProperties += new EventHandler<PhysicsPropertiesEventArgs>(PhysicsPropertiesEvent);
-		client.Objects.TerseObjectUpdate += new EventHandler<TerseObjectUpdateEventArgs>(Objects_TerseObjectUpdate);
+		ClientManager.assetManager.materialContainer.Add(UUID.Zero,
+			new MaterialContainer(UUID.Zero, Texture2D.whiteTexture, 3));
 
-		client.Avatars.AvatarAnimation += new EventHandler<AvatarAnimationEventArgs>(AvatarAnimationHandler);
+		client.Objects.AvatarUpdate += AvatarUpdateHandler;
+		client.Objects.KillObject += KillObjectEventHandler;
+		client.Objects.KillObjects += KillObjectsEventHandler;
+		client.Objects.ObjectDataBlockUpdate += ObjectDataBlockUpdateEvent;
+		client.Objects.ObjectProperties += ObjectPropertiesEventHandler;
+		client.Objects.ObjectPropertiesUpdated += ObjectPropertiesUpdateHandler;
+		client.Objects.ObjectUpdate += Objects_ObjectUpdate;
+		client.Objects.PhysicsProperties += PhysicsPropertiesEvent;
+		client.Objects.TerseObjectUpdate += Objects_TerseObjectUpdate;
 
-		//client.Objects.SimulatorViewerTimeMessage += (object sender, PacketReceivedEventArgs e)
-		//}
-		client.Terrain.LandPatchReceived += new EventHandler<LandPatchReceivedEventArgs>(TerrainEventHandler);
-		client.Avatars.UUIDNameReply += new EventHandler<UUIDNameReplyEventArgs>(AvatarNamesEventHandler);
+		client.Avatars.AvatarAnimation += AvatarAnimationHandler;
 
+		client.Terrain.LandPatchReceived += TerrainEventHandler;
+		client.Avatars.UUIDNameReply += AvatarNamesEventHandler;
 
-		//StartCoroutine(MeshRequests());
-		//StartCoroutine(ObjectsUpdate());
 
 		StartCoroutine(UpdateCamera());
 		StartCoroutine(CleanUnusedAssets());
 		objectProximityHandler = new ObjectProximityHandler(objectUpdates, client);
 		objectProximityHandler.UpdateCameraProperties(Camera.main);
+	}
+
+	private void OnDestroy()
+	{
+		client.Objects.AvatarUpdate -= AvatarUpdateHandler;
+		client.Objects.KillObject -= KillObjectEventHandler;
+		client.Objects.KillObjects -= KillObjectsEventHandler;
+		client.Objects.ObjectDataBlockUpdate -= ObjectDataBlockUpdateEvent;
+		client.Objects.ObjectProperties -= ObjectPropertiesEventHandler;
+		client.Objects.ObjectPropertiesUpdated -= ObjectPropertiesUpdateHandler;
+		client.Objects.ObjectUpdate -= Objects_ObjectUpdate;
+		client.Objects.PhysicsProperties -= PhysicsPropertiesEvent;
+		client.Objects.TerseObjectUpdate -= Objects_TerseObjectUpdate;
+
+		client.Avatars.AvatarAnimation -= AvatarAnimationHandler;
+		client.Terrain.LandPatchReceived -= TerrainEventHandler;
+		client.Avatars.UUIDNameReply -= AvatarNamesEventHandler;
 	}
 
 	/// <summary>
@@ -267,7 +247,8 @@ public class SimManager : MonoBehaviour
 		simulators.TryAdd(pSim.Handle, sim);
 	}
 
-	IEnumerator CleanUnusedAssets()
+
+	private IEnumerator CleanUnusedAssets()
 	{
 		while (true)
 		{
@@ -276,29 +257,23 @@ public class SimManager : MonoBehaviour
 		}
 	}
 
-	readonly ConcurrentQueue<AvatarUpdateEventArgs> avatarUpdates = new();
-
-	public void AvatarUpdateHandler(object sender, AvatarUpdateEventArgs e)
+	private void AvatarUpdateHandler(object sender, AvatarUpdateEventArgs e)
 	{
 		this.objectProximityHandler.AddPrimPositionID(e.Avatar.LocalID, e.Avatar.ParentID, e.Avatar.Position);
-		avatarUpdates.Enqueue(e);
+		_avatarUpdates.Enqueue(e);
 	}
 
-	void AvatarUpdates()
+	private void AvatarUpdates()
 	{
 		Primitive prim;
-		while (avatarUpdates.Count > 0)
+		while (_avatarUpdates.Count > 0)
 		{
-			avatarUpdates.TryDequeue(out AvatarUpdateEventArgs e);
-			this.meshObjectManager.OnAvatarUpdate(e);
-			//if (e.Simulator.Handle != thissim) continue;
+			_avatarUpdates.TryDequeue(out AvatarUpdateEventArgs e);
+			meshObjectManager.OnAvatarUpdate(e);
 			prim = e.Avatar;
 			if (e.IsNew)
 			{
-				//if (prim.RegionHandle != thissim) return;
-				//Debug.Log($"New Object at <{prim.Position.ToUnity()}>");
 				GameObject bgo = Instantiate<GameObject>(blank);
-				//bgo.transform.parent = simulators[e.Simulator.Handle].terrain.transform;
 				bgo.name = $"avatar {prim.LocalID} heirarchy holder";
 
 				GameObject go = Instantiate<GameObject>(cube);
@@ -330,6 +305,7 @@ public class SimManager : MonoBehaviour
 							bgo.transform.parent = scenePrims[prim.ParentID].obj.transform.parent;
 						}
 					}
+
 					bgo.transform.SetLocalPositionAndRotation(
 						prim.Position.ToUnity(),
 						prim.Rotation.ToUnity());
@@ -340,7 +316,8 @@ public class SimManager : MonoBehaviour
 						{
 							if (p.ParentID == prim.ParentID && scenePrims.ContainsKey(prim.ParentID))
 							{
-								scenePrims[p.LocalID].obj.transform.parent.parent = scenePrims[prim.ParentID].obj.transform.parent;
+								scenePrims[p.LocalID].obj.transform.parent.parent =
+									scenePrims[prim.ParentID].obj.transform.parent;
 								bgo.transform.SetLocalPositionAndRotation(
 									prim.Position.ToUnity(),
 									p.Rotation.ToUnity());
@@ -369,7 +346,8 @@ public class SimManager : MonoBehaviour
 				{
 					if (scenePrims.ContainsKey(prim.LocalID))
 					{
-						Debug.LogWarning($"Tried to create new prim, but localID:{prim.LocalID} already exists in scene.");
+						Debug.LogWarning(
+							$"Tried to create new prim, but localID:{prim.LocalID} already exists in scene.");
 					}
 					else
 					{
@@ -396,14 +374,12 @@ public class SimManager : MonoBehaviour
 					scenePrims[e.Avatar.LocalID].prim = e.Avatar;
 					scenePrims[e.Avatar.LocalID].velocity = e.Avatar.Velocity.ToVector3();
 					scenePrims[e.Avatar.LocalID].omega = e.Avatar.AngularVelocity.ToVector3();
-					//scenePrims[e.Avatar.LocalID].
 				}
 			}
-
 		}
 	}
 
-	void HandleAttachment(GameObject bgo, Primitive prim)
+	private void HandleAttachment(GameObject bgo, Primitive prim)
 	{
 		if (prim.IsAttachment)
 		{
@@ -413,58 +389,30 @@ public class SimManager : MonoBehaviour
 				Transform _attachpoint = FindChildByNameRecursive(_av, prim.PrimData.AttachmentPoint.ToString());
 				if (_attachpoint != null)
 				{
-					AddPositionAndRotationConstraints(bgo, _attachpoint, prim.Position.ToVector3(), prim.Rotation.ToUnity().eulerAngles);
+					AddPositionAndRotationConstraints(bgo, _attachpoint, prim.Position.ToVector3(),
+						prim.Rotation.ToUnity().eulerAngles);
 				}
 			}
 		}
 	}
-	public bool scenePrimsContainsAvatar = false;
 
-	readonly ConcurrentQueue<ObjectPropertiesUpdatedEventArgs> objectPropertiesUpdateEvents = new();
-	public void ObjectPropertiesUpdateHandler(object sender, ObjectPropertiesUpdatedEventArgs e)
+	private void ObjectPropertiesUpdateHandler(object sender, ObjectPropertiesUpdatedEventArgs e)
 	{
 		this.objectProximityHandler.AddPrimPositionID(e.Prim);
-		objectPropertiesUpdateEvents.Enqueue(e);
+		_objectPropertiesUpdateEvents.Enqueue(e);
 	}
 
-	public void PhysicsPropertiesEvent(object sender, PhysicsPropertiesEventArgs e)
+	private void PhysicsPropertiesEvent(object sender, PhysicsPropertiesEventArgs e)
 	{
 		return;
 	}
 
-	public class UUIDNameReplyEvent
-	{
-		public UUID uuid;
-		public string name;
-	}
-	public ConcurrentQueue<UUIDNameReplyEvent> nameReplyEvents = new();
-	void AvatarNamesEventHandler(object sender, UUIDNameReplyEventArgs e)
-	{
-		foreach (KeyValuePair<UUID, string> kvp in e.Names)
-		{
-			if (scenePrimIndexUUID.ContainsKey(kvp.Key))
-			{
-				if (scenePrims.TryGetValue(scenePrimIndexUUID[kvp.Key], out ScenePrimData sPrim))
-				{
-					//Debug.Log($"NAME RECEIVED: {kvp.Value}");
-					nameReplyEvents.Enqueue(new UUIDNameReplyEvent { uuid = kvp.Key, name = kvp.Value });
-					//UnityMainThreadDispatcher.Instance().Enqueue(() => sPrim.SetName(kvp.Value));
-
-				}
-			}
-			else
-			{
-				ClientManager.client.Avatars.RequestAvatarName(kvp.Key);
-			}
-		}
-	}
-
-	void NameReplyEvents()
+	private void NameReplyEvents()
 	{
 		Queue<UUIDNameReplyEvent> newQueue = new();
-		while (nameReplyEvents.Count > 0)
+		while (_nameReplyEvents.Count > 0)
 		{
-			if (nameReplyEvents.TryDequeue(out UUIDNameReplyEvent nameReplyEvent))
+			if (_nameReplyEvents.TryDequeue(out UUIDNameReplyEvent nameReplyEvent))
 			{
 				if (scenePrimIndexUUID.ContainsKey(nameReplyEvent.uuid))
 				{
@@ -477,7 +425,6 @@ public class SimManager : MonoBehaviour
 					else
 					{
 						newQueue.Enqueue(nameReplyEvent);
-
 					}
 				}
 				else
@@ -489,68 +436,54 @@ public class SimManager : MonoBehaviour
 
 		while (newQueue.Count > 0)
 		{
-			nameReplyEvents.Enqueue(newQueue.Dequeue());
+			_nameReplyEvents.Enqueue(newQueue.Dequeue());
 		}
 	}
 
 
-	void ObjectPropertyEvents()
+	private void ObjectPropertyEvents()
 	{
-		while (objectPropertiesEvents.Count > 0)
+		while (_objectPropertiesEvents.Count > 0)
 		{
-			if (objectPropertiesEvents.TryDequeue(out ObjectPropertiesEventArgs objectPropertiesEvent))
+			if (_objectPropertiesEvents.TryDequeue(out ObjectPropertiesEventArgs objectPropertiesEvent))
 			{
 				if (scenePrims.ContainsKey(scenePrimIndexUUID[objectPropertiesEvent.Properties.ObjectID]))
 				{
-					scenePrims[scenePrimIndexUUID[objectPropertiesEvent.Properties.ObjectID]].SetProperties(objectPropertiesEvent.Properties);
+					scenePrims[scenePrimIndexUUID[objectPropertiesEvent.Properties.ObjectID]]
+						.SetProperties(objectPropertiesEvent.Properties);
 				}
 			}
 		}
 
-		while (objectPropertiesUpdateEvents.Count > 0)
+		while (_objectPropertiesUpdateEvents.Count > 0)
 		{
-			if (objectPropertiesUpdateEvents.TryDequeue(out ObjectPropertiesUpdatedEventArgs objectPropertiesUpdateEvent))
+			if (_objectPropertiesUpdateEvents.TryDequeue(
+				    out ObjectPropertiesUpdatedEventArgs objectPropertiesUpdateEvent))
 			{
 				if (scenePrims.ContainsKey(scenePrimIndexUUID[objectPropertiesUpdateEvent.Properties.ObjectID]))
 				{
-					scenePrims[scenePrimIndexUUID[objectPropertiesUpdateEvent.Properties.ObjectID]].SetProperties(objectPropertiesUpdateEvent.Properties);
+					scenePrims[scenePrimIndexUUID[objectPropertiesUpdateEvent.Properties.ObjectID]]
+						.SetProperties(objectPropertiesUpdateEvent.Properties);
 				}
 			}
 		}
 	}
 
-	//Dictionary<UUID,>
-	readonly ConcurrentQueue<ObjectPropertiesEventArgs> objectPropertiesEvents = new();
-	void ObjectPropertiesEventHandler(object sender, ObjectPropertiesEventArgs e)
+	private void ObjectPropertiesEventHandler(object sender, ObjectPropertiesEventArgs e)
 	{
-		//Primitive prim;
 		if (scenePrims.TryGetValue(scenePrimIndexUUID[e.Properties.ObjectID], out ScenePrimData sPrim))
 		{
-			//Debug.Log($"PROPERTIES RECEIVED. NAME = {e.Properties.Name}");
-
-			objectPropertiesEvents.Enqueue(e);
-			//UnityMainThreadDispatcher.Instance().Enqueue(() => sPrim.SetProperties(e.Properties));
+			_objectPropertiesEvents.Enqueue(e);
 		}
-		//PrimsWaiting.Remove(e.Properties.ObjectID);
-
-		//if (PrimsWaiting.Count == 0)
-		//	AllPropertiesReceived.Set();
 	}
 
-	/// <summary>
-	/// Honestly not sure what this update event is even about
-	/// The documentation on libOpenMetaverse and libreMetaverse
-	/// is incredibly scant, but it appears to be
-	/// Yet Another Prim Update Event
-	/// </summary>
-	public ConcurrentQueue<ObjectDataBlockUpdateEventArgs> objectDataBlockUpdates = new();
 	void ObjectDataBlockUpdateEvent(object sender, ObjectDataBlockUpdateEventArgs e)
 	{
 		objectDataBlockUpdates.Enqueue(e);
 	}
 
 
-	public void AvatarAnimationHandler(object sender, AvatarAnimationEventArgs e)
+	private void AvatarAnimationHandler(object sender, AvatarAnimationEventArgs e)
 	{
 		var map = this.meshObjectManager.avatarPrimitiveMap;
 		if (map.TryGetValue(e.AvatarID, out Primitive prim))
@@ -569,50 +502,29 @@ public class SimManager : MonoBehaviour
 		}
 	}
 
-	/// <summary>
-	/// This will eventually be used to delete objects that are killed
-	/// Currently no objects are killed because we're just testing and
-	/// trying to get mesh memory use sorted right now.
-	/// </summary>
-	public class KillObjectEventData
+	private void KillObjectEventHandler(object sender, KillObjectEventArgs e)
 	{
-		public object sender;
-		public KillObjectEventArgs e;
-
-		public KillObjectEventData(object sender, KillObjectEventArgs e)
-		{
-			this.sender = sender;
-			this.e = e;
-		}
+		_killObjectQueue.Enqueue(new KillObjectEventData(sender, e));
 	}
 
-	readonly ConcurrentQueue<KillObjectEventData> killObjectQueue = new();
-
-	void KillObjectEventHandler(object sender, KillObjectEventArgs e)
+	private void KillObjectsEventHandler(object sender, KillObjectsEventArgs e)
 	{
-		killObjectQueue.Enqueue(new KillObjectEventData(sender, e));
-		//UnityMainThreadDispatcher.Instance().Enqueue(() => KillObject(e));
-	}
-
-	void KillObjectsEventHandler(object sender, KillObjectsEventArgs e)
-	{
-		//e.ObjectLocalIDs
 		foreach (uint id in e.ObjectLocalIDs)
 		{
-			killObjectQueue.Enqueue(new KillObjectEventData(sender, new KillObjectEventArgs(e.Simulator, id)));
+			_killObjectQueue.Enqueue(new KillObjectEventData(sender, new KillObjectEventArgs(e.Simulator, id)));
 		}
 	}
 
-	void KillObjects()
+	private void KillObjects()
 	{
 		Material dissolver = Resources.Load<Material>("Dissolver");
 		Material original;
 		Material dissolvemat;
 		List<MeshRequestData> newmrd = new();
 
-		while (killObjectQueue.Count > 0)
+		while (_killObjectQueue.Count > 0)
 		{
-			if (killObjectQueue.TryDequeue(out KillObjectEventData data))
+			if (_killObjectQueue.TryDequeue(out KillObjectEventData data))
 			{
 				if (scenePrims.ContainsKey(data.e.ObjectLocalID))
 				{
@@ -620,13 +532,15 @@ public class SimManager : MonoBehaviour
 					{
 						orphanedPrims.Remove(data.e.ObjectLocalID);
 					}
+
 					if (scenePrims[data.e.ObjectLocalID].obj == null) continue;
 					if (scenePrims[data.e.ObjectLocalID].prim.RegionHandle != data.e.Simulator.Handle)
 					{
 						// Disabling this because it's making the viewer lag
-						 // Debug.Log($"KILLOBJECTS: wrong simulator {scenePrims[data.e.ObjectLocalID].prim.RegionHandle} != {data.e.Simulator.Handle}");
+						// Debug.Log($"KILLOBJECTS: wrong simulator {scenePrims[data.e.ObjectLocalID].prim.RegionHandle} != {data.e.Simulator.Handle}");
 						continue;
 					}
+
 					GameObject go = scenePrims[data.e.ObjectLocalID].obj;
 					Renderer[] rs = go.GetComponentsInChildren<Renderer>();
 					foreach (Renderer r in rs)
@@ -638,40 +552,39 @@ public class SimManager : MonoBehaviour
 						r.gameObject.AddComponent<DissolveOut>();
 						r.GetComponent<MeshCollider>().enabled = false;
 					}
+
 					newmrd = new List<MeshRequestData>();
 					foreach (MeshRequestData mrd in meshRequests)
 					{
 						if (mrd.meshHolder.gameObject != null) newmrd.Add(mrd);
 					}
+
 					meshRequests = newmrd;
 
 					StartCoroutine(DissolveObject(scenePrims[data.e.ObjectLocalID].obj));
-					if (scenePrims.ContainsKey(data.e.ObjectLocalID)) scenePrims.Remove(data.e.ObjectLocalID, out ScenePrimData spd);
+					if (scenePrims.ContainsKey(data.e.ObjectLocalID))
+						scenePrims.Remove(data.e.ObjectLocalID, out ScenePrimData spd);
 
 					//dissolveObject = DissolveObject(data);
-
 				}
 			}
 		}
 	}
 
-	//private IEnumerator dissolveObject;
-	IEnumerator DissolveObject(GameObject go)
+	private IEnumerator DissolveObject(GameObject go)
 	{
 		yield return new WaitForSeconds(10f);
 		if (go != null)
 			if (!go.IsDestroyed())
 				Destroy(go.transform.parent.gameObject);
-
-
 	}
-
-	public Transform sun;
 
 #if USE_FUNLY_SKY
 	public TimeOfDayController timeOfDayController;
 #endif
 
+	// can we set a stopwatch to time all of these functions,
+	// and then generate a debug report at the end?
 	public void Update()
 	{
 		// ((ObjectProximityHandler)objectProximityHandler).DrawFrustum();// for debugging
@@ -686,22 +599,17 @@ public class SimManager : MonoBehaviour
 		AllTextureRequests();
 		if (!_config.UseNewObjectGraph)
 		{
+			// big %
 			AllObjectsUpdate(t);
 			ObjectBlockUpdates(t);
 			TerseUpdates(t);
 		}
+
 		NameReplyEvents();
 		ObjectPropertyEvents();
 		AvatarUpdates();
 
-		float time = Time.deltaTime;
-		ForEachSimContainer(simContainer =>
-		{
-			// This processes the terrain height updates for the region
-			simContainer.terrain.TerrainUpdate(simContainer);
-			simContainer.age += time;
-		});
-
+		if (_updateSimContainers) StartCoroutine(UpdateContainers());
 
 		//if (ClientManager.client.Grid.SunDirection.ToVector3()!=Vector3.zero)sun.forward = -ClientManager.client.Grid.SunDirection.ToVector3();
 		//ClientManager.chat.log.text = $"SunPhase: {Mathf.Repeat((ClientManager.client.Grid.SunPhase * 0.15915494309189533576888376337251f) + 0.25f, 1f)}";
@@ -722,19 +630,33 @@ public class SimManager : MonoBehaviour
 		}
 	}
 
-	public void LateUpdate()
-	{
-		//KillObjects();
-	}
+	private bool _updateSimContainers = true;
 
-	const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
-	const float RAD_TO_DEG = 57.295779513082320876798154814105f;
+	// we need to find a better way to update the terrains, callback is called too many times
+	// iparfor the vert data
+	private IEnumerator UpdateContainers()
+	{
+		_updateSimContainers = false;
+		while (true)
+		{
+			foreach (var pair in simulators)
+			{
+				pair.Value.terrain.TerrainUpdate(pair.Value);
+				pair.Value.age += Time.deltaTime;
+				yield return null;
+			}
+
+			yield return new WaitForSeconds(0.5f);
+		}
+
+	}
 
 	/// <summary>
 	/// Move and rotate objects according to their velocity variables.
 	/// </summary>
 	/// <param name="t"></param>
 	public List<uint> movingObjects = new();
+
 	/// <summary>
 	/// Move and rotate objects according to their velocity variables.
 	/// </summary>
@@ -768,9 +690,13 @@ public class SimManager : MonoBehaviour
 			if (client.Settings.SEND_AGENT_UPDATES && ClientManager.active)
 			{
 				//client.Self.Movement.Camera.SetPositionOrientation(new OMVVector3(cameraRoot.transform.position.x, cameraRoot.transform.position.z, cameraRoot.transform.position.y), cameraRoot.transform.rotation.eulerAngles.x * DEG_TO_RAD, cameraRoot.transform.rotation.eulerAngles.z * DEG_TO_RAD, cameraRoot.transform.rotation.eulerAngles.y * DEG_TO_RAD);
-				Vector3 lookat = Camera.main.transform.position + (Camera.main.transform.forward * 7.5f);//cameraRoot.position + (cameraRoot.transform.forward * 7.5f);
+				Vector3 lookat =
+					Camera.main.transform.position +
+					(Camera.main.transform.forward *
+					 7.5f); //cameraRoot.position + (cameraRoot.transform.forward * 7.5f);
 				client.Self.Movement.Camera.LookAt(
-					new OMVVector3(Camera.main.transform.position.x, Camera.main.transform.position.z, Camera.main.transform.position.y),
+					new OMVVector3(Camera.main.transform.position.x, Camera.main.transform.position.z,
+						Camera.main.transform.position.y),
 					new OMVVector3(lookat.x, lookat.z, lookat.y));
 				objectProximityHandler.UpdateCameraProperties(Camera.main);
 
@@ -803,34 +729,32 @@ public class SimManager : MonoBehaviour
 		}
 	}
 
-	//public List<MeshUpdate> meshUpdates = new List<MeshUpdate>();
-
-	//List<ObjectData> objectData = new List<ObjectData>();
-
-	private static readonly WaitForSecondsRealtime Wait100ms = new(0.1f);
-	//private static readonly WaitForSecondsRealtime Wait50ms = new(0.05f);
 
 	IEnumerator TextureRequests()
 	{
 		while (true)
 		{
 			var totalAllowedInOneFrame = 10;
-			while (_readyTextureQueue.TryDequeue(out var textureItem) && textureItem is not null && totalAllowedInOneFrame-- > 0)
+			while (_readyTextureQueue.TryDequeue(out var textureItem) && textureItem is not null &&
+			       totalAllowedInOneFrame-- > 0)
 			{
-				ClientManager.assetManager.MainThreadTextureReinitialize(textureItem.Data, textureItem.UUID, textureItem.Width, textureItem.Height, textureItem.Components);
+				ClientManager.assetManager.MainThreadTextureReinitialize(textureItem.Data, textureItem.UUID,
+					textureItem.Width, textureItem.Height, textureItem.Components);
 			}
+
 			//Perf.Measure("Resources.UnloadUnusedAssets", Resources.UnloadUnusedAssets);
 			yield return Wait100ms;
-
 		}
 	}
 
 	void AllTextureRequests()
 	{
 		var totalAllowedInOneFrame = 10;
-		while (_readyTextureQueue.TryDequeue(out var textureItem) && textureItem is not null && totalAllowedInOneFrame-- > 0)
+		while (_readyTextureQueue.TryDequeue(out var textureItem) && textureItem is not null &&
+		       totalAllowedInOneFrame-- > 0)
 		{
-			ClientManager.assetManager.MainThreadTextureReinitialize(textureItem.Data, textureItem.UUID, textureItem.Width, textureItem.Height, textureItem.Components);
+			ClientManager.assetManager.MainThreadTextureReinitialize(textureItem.Data, textureItem.UUID,
+				textureItem.Width, textureItem.Height, textureItem.Components);
 		}
 	}
 
@@ -846,12 +770,11 @@ public class SimManager : MonoBehaviour
 	}
 
 
-
 	/// <summary>
 	/// Called once per fixed update.
 	/// Services the ReadyMeshQueue
 	/// </summary>
-	void ServiceReadyMeshQueue()
+	private void ServiceReadyMeshQueue()
 	{
 		ServiceQueueRepeatedly(_decodedMeshQueue, this.meshObjectManager.SetupMeshObject);
 	}
@@ -878,7 +801,7 @@ public class SimManager : MonoBehaviour
 	/// Dequeues one mesh request and creates renderers for the mesh.
 	/// </summary>
 	/// <returns></returns>
-	bool DoOneDecodedMesh()
+	private bool DoOneDecodedMesh()
 	{
 		if (!_decodedMeshQueue.TryDequeue(out var item) || item is null) return false;
 		// DoDecodedMesh(item);
@@ -886,7 +809,6 @@ public class SimManager : MonoBehaviour
 		return true;
 	}
 
-	private ConcurrentQueue<ScenePrimData> unTexturedPrims = new();
 
 	/// <summary>
 	///BGO represents the unscaled parent, which is in the correct position and rotation but has a scale of Vector3.one
@@ -902,14 +824,12 @@ public class SimManager : MonoBehaviour
 			if (update.IsNew && !scenePrims.ContainsKey(update.Prim.LocalID))
 			{
 				NewObject(update.Prim);
-				continue;
 			}
 			else if (scenePrims.ContainsKey(update.Prim.LocalID))
 			{
 				scenePrims[update.Prim.LocalID].UpdateObject(update, t);
 			}
 		}
-
 	}
 
 	void ObjectBlockUpdates(float t)
@@ -951,22 +871,20 @@ public class SimManager : MonoBehaviour
 
 	public ConcurrentQueue<PrimEventArgs> objectUpdates = new();
 	public ObjectProximityHandler objectProximityHandler;
+
 	void Objects_ObjectUpdate(object sender, PrimEventArgs _event)
 	{
 		objectProximityHandler.AddObject(_event);
 		//objectUpdates.Enqueue(_event);
 	}
 
-	public ConcurrentDictionary<UUID, uint> scenePrimIndexUUID = new();
-
-	public ConcurrentDictionary<uint, ScenePrimData> scenePrims = new();
-	public Dictionary<uint, List<Primitive>> orphanedPrims = new();
 
 	public class MeshRequestData
 	{
 		public uint localID;
 		public UUID sculptTextureUUID;
 		public GameObject meshHolder;
+
 		public MeshRequestData(uint lid, UUID uuid, GameObject mh)
 		{
 			localID = lid;
@@ -974,102 +892,6 @@ public class SimManager : MonoBehaviour
 			meshHolder = mh;
 		}
 	}
-
-	public List<MeshRequestData> meshRequests = new();
-
-	/*
-	[Obsolete]
-	public void PopulateMesh(UUID uuid, Vector3[] vertices, Vector3[] normals, Vector2[] uvs, int[] indices, string _name, int face, bool cleanup)
-	{
-		//Debug.Log($"Scanning {meshRequests.Count} mesh requests for matching mesh UUID");
-		Mesh mesh = new();
-		GameObject go;
-		MeshFilter mf;
-		List<MeshRequestData> _templist = new();
-		bool disable;
-		foreach (MeshRequestData mrd in meshRequests)
-		{
-			if (scenePrims.ContainsKey(mrd.localID))
-			{
-				//scenePrims[mrd.localID].renderers = new Renderer[]
-				if (scenePrims[mrd.localID].prim.Sculpt.SculptTexture == uuid)
-				{
-					Transform[] allChildren = mrd.meshHolder.gameObject.GetComponentsInChildren<Transform>();
-					disable = false;
-					foreach (Transform child in allChildren)
-					{
-						if (child.gameObject.name.Contains($"face {face}."))
-						{
-							//child.gameObject.active = false;
-							//Debug.Log("Populate Mesh: skipping previous face");
-							//Destroy(child.gameObject);
-							//continue;
-							disable = true;
-						}
-					}
-					if (disable) continue;
-
-					//if(vertices.Length==0)
-					mesh.vertices = vertices;
-					mesh.normals = normals;
-					//mesh.RecalculateNormals();
-					mesh.uv = uvs;
-					mesh.SetIndices(indices, MeshTopology.Triangles, 0);
-					mesh = mesh.ReverseWind().FlipNormals();
-					mesh.name = uuid.ToString();
-
-					go = Instantiate(Resources.Load<GameObject>("cube"));
-					go.name = $"{_name} {mrd.localID}";
-					PrimInfo pi = go.GetComponent<PrimInfo>();
-					pi.face = face;
-					if (mrd.localID == 0) Debug.Log("local ID cannot be 0");
-					pi.localID = mrd.localID;
-					pi.uuid = scenePrims[mrd.localID].uuid;
-
-					mf = go.GetComponent<MeshFilter>();
-					mf.mesh = mesh;
-					
-					//if (mf.mesh.vertices.Distinct().Count() >= 3)
-                    //{
-                    //    mc = go.GetComponent<MeshCollider>();
-                    //    mc.enabled = false;
-                    //    mc.sharedMesh = mf.mesh;
-                    //    mc.cookingOptions = MeshColliderCookingOptions.CookForFasterSimulation;
-                    //    mc.enabled = true;
-                    //}
-
-					go.transform.parent = mrd.meshHolder.transform;
-					go.transform.localPosition = Vector3.zero;
-					go.transform.localScale = Vector3.one;
-					go.transform.localRotation = Quaternion.identity;
-
-					PreTextureFace(scenePrims[mrd.localID].prim, face, go.GetComponent<MeshRenderer>());
-					if (disable) go.active = false;
-				}
-				else
-				{
-					if (cleanup)
-					{
-						_templist.Add(mrd);
-					}
-				}
-			}
-			else
-			{
-				if (cleanup) _templist.Add(mrd);
-			}
-
-		}
-
-		if (cleanup)
-		{
-			meshRequests = null;
-			meshRequests = _templist;
-			//meshRequests.RemoveAll(m => m.sculptTextureUUID == uuid);
-			//Debug.Log($"Scanning {meshRequests.Count} mesh requests after cleanup");
-		}
-	}
-	*/
 
 	public static void PreTextureFace(Primitive prim, int j, Renderer rendr)
 	{
@@ -1079,11 +901,13 @@ public class SimManager : MonoBehaviour
 
 		if (!ClientManager.assetManager.materialContainer.ContainsKey(uuid))
 		{
-			ClientManager.assetManager.materialContainer.Add(uuid, new MaterialContainer(uuid, Texture2D.Instantiate(Texture2D.whiteTexture), 3));
+			ClientManager.assetManager.materialContainer.Add(uuid,
+				new MaterialContainer(uuid, Texture2D.Instantiate(Texture2D.whiteTexture), 3));
 			if (!ClientManager.assetManager.materials.ContainsKey(uuid))
 			{
 				ClientManager.assetManager.materials.Add(uuid, new List<Renderer>());
 			}
+
 			ClientManager.assetManager.materials[uuid].Add(rendr);
 		}
 
@@ -1093,51 +917,12 @@ public class SimManager : MonoBehaviour
 		dis.newMat = ClientManager.assetManager.materialContainer[uuid].GetMaterial(color, tef.Glow, tef.Fullbright);
 	}
 
-	/*
-	public void TextureFace(Primitive prim, int subMeshIndex, Renderer rendr)
-	{
-		Material clonemat;
-
-		TextureEntryFace textureEntryFace = prim.Textures.GetFace((uint)subMeshIndex);
-		textureEntryFace.GetOSD(subMeshIndex);
-		//ImageType.
-		Color color = textureEntryFace.RGBA.ToUnity();
-		//bool alpha = false;
-
-		//if (color.a < 0.001)
-		//{
-		//    rendr.enabled = false;
-		//}
-		//else
-		//{
-		//rendr.material = ClientManager.assetManager.materialContainer[UUID.Zero].GetMaterial(color, textureEntryFace.Glow, textureEntryFace.Fullbright);//Instantiate<Material>(Resources.Load<Material>("Alpha Material"));
-
-		ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
-
-		if (textureEntryFace.Fullbright) rendr.gameObject.layer = 7;
-		else rendr.gameObject.layer = 0;
-
-		if (scenePrims.ContainsKey(prim.LocalID))
-		{
-			if (IsHUD(scenePrims[prim.LocalID].prim))
-			{
-				rendr.gameObject.layer = 8;
-			}
-			if (scenePrims.ContainsKey(scenePrims[prim.LocalID].prim.ParentID))
-			{
-				if (IsHUD(scenePrims[scenePrims[prim.LocalID].prim.ParentID].prim))
-				{
-					rendr.gameObject.layer = 8;
-				}
-			}
-		}
-	}
-*/
 	public void TextureFace(Primitive prim, int subMeshIndex, Renderer rendr)
 	{
 		if (prim.Textures == null)
 		{
-			Debug.LogError("Prim: " + null + " Textures : " + prim.Textures + " Type: " + prim.Type + " subMeshIndex: " + subMeshIndex);
+			Debug.LogError("Prim: " + null + " Textures : " + prim.Textures + " Type: " + prim.Type +
+			               " subMeshIndex: " + subMeshIndex);
 		}
 
 		TextureEntryFace textureEntryFace = prim.Textures.GetFace((uint)subMeshIndex);
@@ -1145,7 +930,8 @@ public class SimManager : MonoBehaviour
 
 		Color color = textureEntryFace.RGBA.ToUnity();
 
-		Material newMaterial = ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr, subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
+		Material newMaterial = ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr,
+			subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
 
 
 		if (textureEntryFace.Fullbright) rendr.gameObject.layer = 7;
@@ -1157,6 +943,7 @@ public class SimManager : MonoBehaviour
 			{
 				rendr.gameObject.layer = 8;
 			}
+
 			if (scenePrims.ContainsKey(scenePrims[prim.LocalID].prim.ParentID))
 			{
 				if (IsHUD(scenePrims[scenePrims[prim.LocalID].prim.ParentID].prim))
@@ -1167,12 +954,10 @@ public class SimManager : MonoBehaviour
 		}
 	}
 
-	void ScanForFaces()
+	private void ScanForFaces()
 	{
 		if (!ClientManager.active && Time.frameCount % 20 != 0) return;
 
-
-		// if (unTexturedPrims.Count > 0) Debug.Log("AllObjectsUpdate: " + unTexturedPrims.Count + " untextured prims");
 		var unProcessed = new List<ScenePrimData>();
 		while (unTexturedPrims.TryDequeue(out var kvp))
 		{
@@ -1181,7 +966,8 @@ public class SimManager : MonoBehaviour
 			// kvp.obj.name = "TEXTURED " + kvp.obj.name + " " + pis.Length + " " +kvp.obj.transform.GetChild(0);
 			if (pis.Length == 0)
 			{
-				unProcessed.Add(kvp); continue;
+				unProcessed.Add(kvp);
+				continue;
 			}
 
 			foreach (PrimInfo _pi in pis)
@@ -1203,114 +989,17 @@ public class SimManager : MonoBehaviour
 					}
 				}
 			}
-
 		}
 
 		foreach (var pi in unProcessed)
 		{
 			unTexturedPrims.Enqueue(pi);
 		}
-
-
-		/*
-		RaycastHit[] hits;
-		UnityEngine.Ray ray = Camera.main.ScreenPointToRay(new Vector3(UnityEngine.Random.Range(0, Screen.width), UnityEngine.Random.Range(0, Screen.height), 0f));
-		//Debug.Log(hits.Length);
-		int count = 0;
-		//int validate = 0;
-		bool validate = false;
-
-		while (count < 10)
-		{
-			count++;
-			hits = Physics.RaycastAll(ray, 64f, LayerMask.GetMask(new string[] { "Default", "Glow", "Transparent" }));
-			if (hits.Length > 0)
-			{
-
-				//sort by distance because hits are not returned in order of distance
-				Array.Sort(hits, (x, y) => x.distance.CompareTo(y.distance));
-
-				//priminfo for easy data access
-				PrimInfo pi;
-				PrimInfo[] pis;
-
-				int pass = 0;
-				//iterate through the hits
-				for (int i = 0; i < hits.Length; i++)
-				{
-					pass++;
-					if (i == 2) break; //don't texture more than 2 objects deep on the raycast
-					pi = hits[i].collider.gameObject.GetComponent<PrimInfo>();
-					//pis = new PrimInfo
-					if (hits[i].collider.gameObject.layer == 6) pass--;
-					if (hits[i].collider.transform.parent != null)
-					{
-						pis = hits[i].collider.transform.parent.GetComponentsInChildren<PrimInfo>();
-
-						foreach (PrimInfo _pi in pis)
-						{
-							//only request texture if face is the same face and if it's not already textured
-							if (!_pi.isTextured && _pi.face == pi.face)
-							{
-								//validate++;
-								_pi.isTextured = true;
-								validate = true;
-								TextureFace(_pi.prim, _pi.face, _pi.GetComponent<Renderer>());
-							}
-						}
-					}
-
-				}
-			}
-			if (validate) break;
-		}*/
 	}
-
-	/*public void TextureFace(TextureEntryFace textureEntryFace, Renderer rendr)
-	{
-		Material clonemat;
-
-		//TextureEntryFace textureEntryFace = prim.Textures.GetFace((uint)j);
-		//textureEntryFace.GetOSD(j);
-		//ImageType.
-		Color color = textureEntryFace.RGBA.ToUnity();
-		//bool alpha = false;
-
-		//if (color.a < 0.001)
-		//{
-		//	rendr.enabled = false;
-		//}
-		//else
-		//{
-		//rendr.material.SetColor("_BaseColor", color);
-		//rendr.material.SetTexture("_BaseMap", ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr, color));
-		//rendr.material = ClientManager.assetManager.materialContainer[UUID.Zero].GetMaterial(color, textureEntryFace.Glow, textureEntryFace.Fullbright);
-		ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
-		if (textureEntryFace.Fullbright) rendr.gameObject.layer = 7;
-		else rendr.gameObject.layer = 0;
-
-		PrimInfo pi = rendr.gameObject.GetComponent<PrimInfo>();
-		uint localID = pi.localID;
-		pi.isTextured = true;
-		if (scenePrims.ContainsKey(localID))
-		{
-			if (IsHUD(scenePrims[localID].prim))
-			{
-				rendr.gameObject.layer = 8;
-			}
-			if (scenePrims.ContainsKey(scenePrims[localID].prim.ParentID))
-			{
-				if (IsHUD(scenePrims[scenePrims[localID].prim.ParentID].prim))
-				{
-					rendr.gameObject.layer = 8;
-				}
-			}
-		}
-	}*/
 
 	private void ServiceSceneObjectsNeedingRenderersQueue()
 	{
-		ServiceQueueRepeatedly(_needRenderDataQueue, DoSceneObjectNeedingRenderer);
+		// ServiceQueueRepeatedly(_needRenderDataQueue, DoSceneObjectNeedingRenderer);
 	}
 
 	private void DoSceneObjectNeedingRenderer(SceneObject obj)
@@ -1328,13 +1017,6 @@ public class SimManager : MonoBehaviour
 			case PrimType.Mesh:
 				// TODO RequestMesh()
 				break;
-			//case PrimType.Box:
-			//case PrimType.Cylinder:
-			//case PrimType.Prism:
-			//case PrimType.Sphere:
-			//case PrimType.Torus:
-			//case PrimType.Tube:
-			//case PrimType.Ring:
 			default:
 				// TODO RequestGeneratedMesh()
 				break;
@@ -1355,18 +1037,13 @@ public class SimManager : MonoBehaviour
 
 	private void SetupRenderDataForObject(SceneObject sceneObject)
 	{
-		// this was already done in DoNewSceneObject
-		//var mr = sceneObject.GameObject.GetComponent<MeshRenderer>();
-		//mr.enabled = false;
-
-		// remove old renderers (if any)
 		RemoveRenderers(sceneObject);
 
 		var simObject = sceneObject.SimObject;
 
 		if (!simObject.IsAttachment &&
-			simObject.SimVelocity == Vector3.zero &&
-			simObject.SimAngularVelocity == Vector3.zero)
+		    simObject.SimVelocity == Vector3.zero &&
+		    simObject.SimAngularVelocity == Vector3.zero)
 		{
 			// This will cause the sim to send back an ObjectPropertiesPacket
 			ClientManager.client.Objects.SelectObject(
@@ -1386,14 +1063,6 @@ public class SimManager : MonoBehaviour
 			case PrimType.Mesh:
 				SetupMeshRenderer(sceneObject);
 				break;
-			// otherwise, its a 'classic' prim.
-			//case PrimType.Box:
-			//case PrimType.Cylinder:
-			//case PrimType.Prism:
-			//case PrimType.Sphere:
-			//case PrimType.Torus:
-			//case PrimType.Tube:
-			//case PrimType.Ring:
 			default:
 				SetupClassicPrimRenderer(sceneObject);
 				break;
@@ -1421,25 +1090,6 @@ public class SimManager : MonoBehaviour
 	{
 		var simObject = sceneObject.SimObject;
 		if (!simObject.IsLight) return;
-
-		/*
-		//Crystal Frost abandoned prototype HDRP light settings
-		//Debug.Log("light");
-		GameObject golight = Instantiate<GameObject>(Resources.Load<GameObject>("Point Light"));
-		golight.transform.parent = go.transform;
-		children.Add(golight);
-		golight.transform.localPosition = Vector3.zero;
-		golight.transform.localRotation = Quaternion.identity;
-		Light light = golight.GetComponent<Light>();
-		HDAdditionalLightData hdlight = light.GetComponent<HDAdditionalLightData>();
-
-		//light. = prim.Light.Radius;
-		hdlight.color = prim.Light.Color.ToUnity();
-		//HDRP requires insane amounts of lumens to make lights show up like they do in SL
-		//Not sure why, but yeah...
-		hdlight.intensity = prim.Light.Intensity * 10000000f;
-		hdlight.range = prim.Light.Radius;
-		*/
 
 		var golight = Instantiate(Resources.Load<GameObject>("Point Light"));
 		sceneObject.Light = golight;
@@ -1482,7 +1132,6 @@ public class SimManager : MonoBehaviour
 		//				//Request mesh from server.
 		//				ClientManager.simManager.meshRequests.Add(new SimManager.MeshRequestData(spd.prim.LocalID, spd.prim.Sculpt.SculptTexture, spd.meshHolder));
 		//				ClientManager.assetManager.RequestSculpt(spd.meshHolder, spd.prim);
-		//				if (!spd.prim.IsAttachment && spd.prim.Velocity.Length() == 0f && spd.prim.AngularVelocity.Length() == 0f) ClientManager.client.Objects.SelectObject(ClientManager.client.Network.CurrentSim, spd.prim.LocalID);
 		_log.LogDebug(nameof(SetupSculptRenderer) + " not implemented.");
 	}
 
@@ -1616,29 +1265,37 @@ public class SimManager : MonoBehaviour
 		_needRenderDataQueue.Enqueue(sceneObject);
 	}
 
-	void NewObject(Primitive prim)
+	static class ProfUtil
+	{
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static long TS() => Stopwatch.GetTimestamp();
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static double MS(long start, long end) =>
+			(end - start) * 1000.0 / Stopwatch.Frequency;
+	}
+
+	private void NewObject(Primitive prim)
 	{
 		//if (prim.RegionHandle != thissim) return;
 
 		DebugStatsManager.AddStateUpdate(DebugStatsType.NewPrim, prim.Type.ToString());
-		// DebugStatsManager.AddStateUpdate("NewPrimTemp", prim.Position.X + " " + prim.Position.Y + " " + prim.Position.Z);
 
-		GameObject bgo = Instantiate<GameObject>(blank);
+		var bgo = Instantiate(blank);
 
 		bgo.transform.parent = simulators[prim.RegionHandle].transform;
 
 		bgo.name = $"object {prim.LocalID} heirarchy holder";
 
-		GameObject go = Instantiate<GameObject>(cube);
+		var go = Instantiate<GameObject>(cube);
 		go.name = $"object {prim.LocalID}";
 
-		GameObject meshHolder = Instantiate<GameObject>(blank);
+		var meshHolder = Instantiate<GameObject>(blank);
 		go.transform.parent = bgo.transform;
 		go.transform.localPosition = Vector3.zero;
 		meshHolder.transform.parent = bgo.transform;
 
 
-		//Debug.Log($"Object: {go.name}");
 		ScenePrimData sPD = new(go, prim);
 
 		if (prim.Type == PrimType.Sculpt || prim.Type == PrimType.Mesh) unTexturedPrims.Enqueue(sPD);
@@ -1684,19 +1341,10 @@ public class SimManager : MonoBehaviour
 			}
 			else
 			{
-				//if (prim.ParentID!=0)
-				//{
 				HandleAttachment(bgo, prim);
 				bgo.transform.SetLocalPositionAndRotation(
 					prim.Position.ToUnity(),
 					prim.Rotation.ToUnity());
-				//}
-				//else// if(ClientManager.simManager.simulators.ContainsKey(prim.RegionHandle))
-				//{
-				//	bgo.transform.SetLocalPositionAndRotation(
-				//		prim.Position.ToUnity()
-				//		prim.Rotation.ToUnity());
-				//}
 			}
 
 			if (orphanedPrims.ContainsKey(prim.ParentID))
@@ -1705,7 +1353,8 @@ public class SimManager : MonoBehaviour
 				{
 					if (p.ParentID == prim.ParentID && scenePrims.ContainsKey(prim.ParentID))
 					{
-						scenePrims[p.LocalID].obj.transform.parent.parent = scenePrims[prim.ParentID].obj.transform.parent;
+						scenePrims[p.LocalID].obj.transform.parent.parent =
+							scenePrims[prim.ParentID].obj.transform.parent;
 						bgo.transform.SetLocalPositionAndRotation(
 							prim.Position.ToUnity(),
 							prim.Rotation.ToUnity());
@@ -1719,7 +1368,6 @@ public class SimManager : MonoBehaviour
 			}
 
 			scenePrims[prim.LocalID].Render();
-
 		}
 		else
 		{
@@ -1734,12 +1382,10 @@ public class SimManager : MonoBehaviour
 
 			Destroy(bgo);
 		}
-
-
-
 	}
 
-	void AddPositionAndRotationConstraints(GameObject obj, Transform anchor, Vector3 posOffset, Vector3 rotOffset)
+	private void AddPositionAndRotationConstraints(GameObject obj, Transform anchor, Vector3 posOffset,
+		Vector3 rotOffset)
 	{
 		// Add Position Constraint
 		PositionConstraint positionConstraint = obj.AddComponent<PositionConstraint>();
@@ -1766,7 +1412,7 @@ public class SimManager : MonoBehaviour
 		rotationConstraint.locked = true;
 	}
 
-	Transform FindChildByNameRecursive(Transform parent, string name)
+	private Transform FindChildByNameRecursive(Transform parent, string name)
 	{
 		foreach (Transform child in parent)
 		{
@@ -1785,7 +1431,7 @@ public class SimManager : MonoBehaviour
 		return null;
 	}
 
-	void CleanOrphanedPrims(Primitive prim)
+	private void CleanOrphanedPrims(Primitive prim)
 	{
 		if (orphanedPrims.ContainsKey(prim.ParentID))
 		{
@@ -1795,39 +1441,5 @@ public class SimManager : MonoBehaviour
 				orphanedPrims.Remove(prim.ParentID);
 			}
 		}
-	}
-
-	void NewAvatar(OpenMetaverse.Avatar av)
-	{
-
-	}
-
-}
-
-public struct MovePrims : IJobParallelFor
-{
-	public NativeArray<float3> positionArray;
-	public NativeArray<float3> newpositionArray;
-	public NativeArray<quaternion> rotationArray;
-	public NativeArray<quaternion> newrotationArray;
-
-	public void Execute(int index)
-	{
-		positionArray[index] = newpositionArray[index];
-		rotationArray[index] = newrotationArray[index];
-		//throw new NotImplementedException();
-	}
-}
-
-public struct OmegaSpin : IJobParallelFor
-{
-	public NativeArray<quaternion> rotationArray;
-	public NativeArray<quaternion> newrotationArray;
-	[ReadOnly] public float deltaTime;
-
-	public void Execute(int index)
-	{
-		rotationArray[index] = newrotationArray[index];
-		//throw new NotImplementedException();
 	}
 }

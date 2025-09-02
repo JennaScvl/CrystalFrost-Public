@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-
+using Temp;
 using OMV = OpenMetaverse;
 
 using UnityEngine;
@@ -56,7 +56,7 @@ public class SimTerrainTiles : SimTerrain
 		terrainPatchUpdates.Enqueue(pLandPatchEvent);
     }
 
-	public override void TerrainUpdate(SimManager.SimulatorContainer pSimContainer)
+	public override void TerrainUpdate(SimulatorContainer pSimContainer)
     {
         SimTerrainTiles terrain = pSimContainer.terrain as SimTerrainTiles;
         if (terrain == null)
@@ -256,7 +256,7 @@ public class SimTerrainTiles : SimTerrain
     }
 
     // There have been updates to the terrain some compute the splat texture that covers the terrain.
-    public void TerrainApplyTerrainSplatting(SimManager.SimulatorContainer pSimContainer, SimTerrainTiles pTerrain)
+    public void TerrainApplyTerrainSplatting(SimulatorContainer pSimContainer, SimTerrainTiles pTerrain)
     {
         // Debug.Log($"Applying Terrain Splats {pSimContainer.sim.Name}");
 

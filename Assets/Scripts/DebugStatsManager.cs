@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 public enum DebugStatsType
 {
@@ -19,6 +20,7 @@ public class DebugStatsManager : MonoBehaviour
 {
 
 	private static DebugStatsManager s_Instance;
+	private string _reportText;
 
 	private void Awake()
 	{
@@ -29,6 +31,16 @@ public class DebugStatsManager : MonoBehaviour
 		else if (s_Instance == null)
 		{
 			s_Instance = this;
+			_ = AsyncTimer();
+		}
+	}
+
+	private async Task AsyncTimer()
+	{
+		while (true)
+		{
+			await Task.Delay(250);
+			_reportText = BuildReport();
 		}
 	}
 
@@ -57,7 +69,8 @@ public class DebugStatsManager : MonoBehaviour
 
 	public TMP_Text debugUIDisplay = null;
 
-	// maybe switch this a enum/switch case
+	// fixed main thread updates, doesn't have remove state or a toggle. 
+	// fixing bottle necks first, but add toggle, more efficient tracking, and better threaded collections
 	private void AddStateInternal(DebugStatsType stateName, string stateValue)
 	{
 		// PrimEvent, PrimUpdate, NewPrim, MeshDownloadRequest, SculptDownloadRequest, DecodedMeshProcess
@@ -146,30 +159,12 @@ public class DebugStatsManager : MonoBehaviour
 		return report;
 	}
 
-	private void Start()
-	{
-	}
-
-	private void Update()
-	{
-	}
-
-	private void OnDrawGizmos()
-	{
-		/*
-		foreach (var t in tmplst)
-		{
-			Gizmos.DrawWireSphere(t, 10.0f);
-		}
-		*/
-	}
-
 	private void LateUpdate()
 	{
 
 		if (debugUIDisplay != null)
 		{
-			debugUIDisplay.text = BuildReport();
+			debugUIDisplay.text = _reportText;
 		}
 
 	}

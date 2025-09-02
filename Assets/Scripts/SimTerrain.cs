@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-
+using Temp;
 using UnityEngine;
 
 using OMV = OpenMetaverse;
@@ -18,7 +18,7 @@ interface ISimTerrain
     // Called with terrain height updates from the simulator
     public void TerrainPatchUpdate(OMV.LandPatchReceivedEventArgs pLandPatchEvent);
     // Called once a frame to update the terrain
-    public void TerrainUpdate(SimManager.SimulatorContainer pSimContainer);
+    public void TerrainUpdate(SimulatorContainer pSimContainer);
     // Set the graphics position of the terrain
     public void SetTerrainRelativePosition(OMV.Simulator pSim);
 
@@ -60,7 +60,7 @@ public abstract class SimTerrain : ISimTerrain
 
     public abstract void TerrainPatchUpdate(OMV.LandPatchReceivedEventArgs pLandPatchEvent);
 
-    public abstract void TerrainUpdate(SimManager.SimulatorContainer pSimContainer);
+    public abstract void TerrainUpdate(SimulatorContainer pSimContainer);
 
     // Handle an edit terrain height message from the simulator.
 	public void EditTerrainHeight(uint handle, int absX, int absY, float[,] heightData)
