@@ -79,7 +79,6 @@ public class SoundManager : MonoBehaviour
 
             if (flags.HasFlag(SoundFlags.Stop))
             {
-                so.aud.loop = false;
                 so.aud.Stop();
                 Destroy(so);
                 return;
@@ -90,11 +89,11 @@ public class SoundManager : MonoBehaviour
                 so.clips.Add(clip);
             }
 
-            // Re-enable looping sounds. The Stop flag is handled above.
-            if (flags.HasFlag(SoundFlags.Loop))
-            {
-                so.aud.loop = true;
-            }
+            //disabled until StopSound events are handled
+            //if (flags.HasFlag(SoundFlags.Loop))
+            //{
+            //    so.aud.loop = true;
+            //}
 
             so.aud.volume = volume;
             so.Play();

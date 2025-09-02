@@ -43,11 +43,21 @@ Visual fidelity and effects.
 | Feature                          | Priority | Libremetaverse Role / Notes                                                                                             |
 | -------------------------------- | :------: | ----------------------------------------------------------------------------------------------------------------------- |
 | Primitive & Avatar Rendering     | **High** | **Partially Done.** LMV's `Meshmerizer` provides the mesh data. Crystal Frost renders it. Needs ongoing improvements.    |
-| Deferred Rendering Pipeline      | **Medium** | This is a Unity rendering pipeline choice (URP/HDRP). Firestorm's is custom. Can be implemented or improved.         |
 | Advanced Lighting (Windlight)    | **Medium** | LMV provides sky/water settings. Unity's lighting system (Directional Lights, Volumetric Clouds) needs to be configured. |
 | Shadows (Dynamic & SSAO)         | **Medium** | This is a standard feature in Unity's render pipelines. Needs to be enabled and configured.                           |
 | Post-Processing Effects (DoF, Glow) | **Medium** | Standard in Unity's Post-Processing Stack. Needs to be integrated and configured.                                   |
 | Physically Based Rendering (PBR) | **Low**    | Unity's standard shaders are PBR. LMV provides PBR material parameters. Needs full integration.                         |
+
+### Frost Light (Advanced Rendering)
+This section details advanced rendering features available in modern Unity that can be implemented to surpass the capabilities of traditional viewers.
+
+| Feature                           | Priority | Notes                                                                                             |
+| --------------------------------- | :------: | ------------------------------------------------------------------------------------------------- |
+| Screen Space Global Illumination (SSGI) | **Low**    | Provides more realistic and dynamic lighting by simulating indirect light bounces. Requires URP/HDRP. |
+| Ray-Traced Reflections/Shadows    | **Low**    | Offers highly realistic reflections and shadows. Requires HDRP and compatible hardware.           |
+| Volumetric Fog & Lighting         | **Low**    | Adds depth and atmosphere to scenes with realistic fog and light shafts. Part of HDRP.            |
+| Custom Advanced Shaders           | **Low**    | Development of unique shaders for effects like procedural materials, interactive water, etc.    |
+
 
 ## 4. Avatar & Appearance
 

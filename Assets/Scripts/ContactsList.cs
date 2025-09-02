@@ -1,77 +1,110 @@
 using OpenMetaverse;
 using System.Collections.Generic;
 using UnityEngine;
-using OMVVector2 = OpenMetaverse.Vector2;
-using Vector2 = UnityEngine.Vector2;
+using TMPro;
 
 public class ContactsList : MonoBehaviour
 {
-    // Start is called before the first frame update
+    [Header("UI Prefabs")]
+    public GameObject baseContactButton; // The prefab for a contact entry in the list
 
-    public GameObject baseContactButton;
-	public GameObject console;
-	
+    [Header("UI Settings")]
+    public Color onlineColor = new Color(0.5f, 1.0f, 0.5f, 1.0f); // A pleasant green
+    public Color offlineColor = Color.gray;
+
+    // A class to hold the data and UI element for a single contact
     public class ContactEntry
     {
         public string name;
         public UUID uuid;
         public GameObject button;
-        TMPro.TMP_Text nameTag;
-        public ContactEntry(string name, UUID uuid, GameObject button, int index)
+        public bool isOnline;
+        private TMP_Text nameTag;
+
+        public ContactEntry(string name, UUID uuid, GameObject button, bool isOnline, ContactsList listManager)
         {
+            this.name = name;
+            this.uuid = uuid;
+            this.button = button;
+            this.nameTag = button.GetComponentInChildren<TMP_Text>();
 
-			this.name = name;
-			this.uuid = uuid;
-			this.button = button;
-			nameTag = button.GetComponentInChildren<TMPro.TMP_Text>();
-			nameTag.text = name;
-            RectTransform rect = button.GetComponent<RectTransform>();
-            Vector2 anchoredPos = rect.anchoredPosition;
-			anchoredPos.y -= 30f * index;
-			rect.anchoredPosition = anchoredPos;
-			UI_IMButton b = button.GetComponent<UI_IMButton>();
-			b.name = name;
-			b.uuid = uuid;
+            UI_IMButton b = button.GetComponent<UI_IMButton>();
+            b.name = name;
+            b.uuid = uuid;
+            b.isContactButton = true;
 
-		}
+            UpdateEntry(name, isOnline, listManager);
+        }
 
-		public void UpdateEntry(string name)
-		{
-			//Debug.Log($"Updating name to {name}");
-			this.name = name;
-			nameTag.text = name;
-			button.name = name;
-			UI_IMButton b = button.GetComponent<UI_IMButton>();
-			b.name = name;
-			b.uuid = uuid;
-			b.isContactButton = true;
-			//Debug.Log($"Name is now {nameTag.text}");
-		}
-	}
+        public void UpdateEntry(string newName, bool newIsOnline, ContactsList listManager)
+        {
+            this.name = newName;
+            this.isOnline = newIsOnline;
 
-    public List<ContactEntry> contactEntries = new List<ContactEntry>();
-    void Awake()
-    {
-        //Debug.Log(baseContactButton.name);
-        contactEntries.Add(new ContactEntry("Loading...", UUID.Zero, baseContactButton, 0));
-		console.SetActive(false);
+            if (nameTag != null)
+            {
+                nameTag.text = this.name;
+                nameTag.color = this.isOnline ? listManager.onlineColor : listManager.offlineColor;
+            }
+
+            if (button != null)
+            {
+                button.name = $"Contact: {this.name} ({ (this.isOnline ? "Online" : "Offline") })";
+            }
+        }
     }
 
-	public void UpdateContact(string name, UUID uuid)
-	{
-		//Debug.Log($"{name}, {uuid}");s
-		foreach(ContactEntry entry in contactEntries)
-		{
-			if (entry.uuid == uuid)
-			{
-				entry.UpdateEntry(name);
-			}
-		}
-	}
-	public ContactEntry AddContact(string name, UUID uuid)
+    public List<ContactEntry> contactEntries = new List<ContactEntry>();
+
+    void Awake()
     {
-        if(name == null) { name = "Loading..."; }
-		contactEntries.Add(new ContactEntry($"{name}", uuid, Instantiate(baseContactButton, baseContactButton.transform.parent, true), contactEntries.Count - 1));
-		return contactEntries[contactEntries.Count - 1];
-	}
+        // The base button is a template; it should be inactive in the scene.
+        if (baseContactButton != null)
+        {
+            baseContactButton.SetActive(false);
+        }
+    }
+
+    public void UpdateContactStatus(UUID contactId, bool isOnline)
+    {
+        var entry = contactEntries.Find(e => e.uuid == contactId);
+        if (entry != null)
+        {
+            entry.UpdateEntry(entry.name, isOnline, this);
+        }
+    }
+
+    public void UpdateContactName(UUID contactId, string newName)
+    {
+        var entry = contactEntries.Find(e => e.uuid == contactId);
+        if (entry != null)
+        {
+            entry.UpdateEntry(newName, entry.isOnline, this);
+        }
+    }
+
+    public void AddContact(string name, UUID uuid, bool isOnline)
+    {
+        if (name == null) { name = "Loading..."; }
+
+        // Instantiate the button from the prefab and set its parent.
+        // A VerticalLayoutGroup on the parent will handle positioning automatically.
+        GameObject newButton = Instantiate(baseContactButton, baseContactButton.transform.parent, false);
+        newButton.SetActive(true);
+
+        ContactEntry newEntry = new ContactEntry(name, uuid, newButton, isOnline, this);
+        contactEntries.Add(newEntry);
+    }
+
+    public void ClearContacts()
+    {
+        foreach (var entry in contactEntries)
+        {
+            if (entry.button != null)
+            {
+                Destroy(entry.button);
+            }
+        }
+        contactEntries.Clear();
+    }
 }

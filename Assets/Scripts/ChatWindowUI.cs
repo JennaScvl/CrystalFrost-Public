@@ -1,76 +1,113 @@
 using OpenMetaverse;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class ChatWindowUI : MonoBehaviour
 {
-    // Start is called before the first frame update
     public GameObject chatConsole;
     public GameObject contactsConsole;
     public ContactsList contactsList;
-    public RectTransform contactsRectTransform;
+
+    public TMPro.TMP_Text contactButtonText;
+    private bool _contactsMode = false;
+
     void Start()
     {
         ClientManager.chatWindow = this;
-        contactsList = gameObject.GetComponent<ContactsList>();
+        if (contactsList == null)
+        {
+            contactsList = GetComponentInChildren<ContactsList>(true);
+        }
+
+        // Subscribe to friend status events
+        ClientManager.client.Friends.FriendOnline += Friends_OnFriendOnline;
+        ClientManager.client.Friends.FriendOffline += Friends_OnFriendOffline;
+        ClientManager.client.Friends.FriendRightsUpdate += Friends_OnFriendRightsUpdate;
     }
 
-    public TMPro.TMP_Text contactButtonText;
-    bool contactsMode = false;
+    void OnDestroy()
+    {
+        // Unsubscribe from events to prevent memory leaks
+        if (ClientManager.client != null && ClientManager.client.Friends != null)
+        {
+            ClientManager.client.Friends.FriendOnline -= Friends_OnFriendOnline;
+            ClientManager.client.Friends.FriendOffline -= Friends_OnFriendOffline;
+            ClientManager.client.Friends.FriendRightsUpdate -= Friends_OnFriendRightsUpdate;
+        }
+    }
+
+    private void Friends_OnFriendRightsUpdate(object sender, FriendInfoEventArgs e)
+    {
+        if (contactsList != null)
+        {
+            contactsList.UpdateContactStatus(e.Friend.UUID, e.Friend.IsOnline);
+        }
+    }
+
+    private void Friends_OnFriendOffline(object sender, FriendInfoEventArgs e)
+    {
+        if (contactsList != null)
+        {
+            contactsList.UpdateContactStatus(e.Friend.UUID, false);
+        }
+    }
+
+    private void Friends_OnFriendOnline(object sender, FriendInfoEventArgs e)
+    {
+        if (contactsList != null)
+        {
+            contactsList.UpdateContactStatus(e.Friend.UUID, true);
+        }
+    }
+
     public void ContactsButton()
     {
-        contactsMode = !contactsMode;
-        if (contactsMode) contactButtonText.text = "Chat";
-        else contactButtonText.text = "Contacts";
+        _contactsMode = !_contactsMode;
+        if (_contactsMode)
+        {
+            contactButtonText.text = "Chat";
+            PopulateContacts(); // Refresh contacts when switching to the view
+        }
+        else
+        {
+            contactButtonText.text = "Contacts";
+        }
 
-        chatConsole.SetActive(!contactsMode);
-        contactsConsole.SetActive(contactsMode);
+        chatConsole.SetActive(!_contactsMode);
+        contactsConsole.SetActive(_contactsMode);
 		ClientManager.soundManager.PlayUISound(new UUID("4c8c3c77-de8d-bde2-b9b8-32635e0fd4a6"));
-
 	}
 
 	public void SwitchToIM(UUID uuid)
 	{
-		contactsMode = !contactsMode;
-		if (contactsMode) contactButtonText.text = "Chat";
-		else contactButtonText.text = "Contacts";
+		_contactsMode = false; // Switch back to chat mode
+		contactButtonText.text = "Contacts";
 
-		chatConsole.SetActive(!contactsMode);
-		contactsConsole.SetActive(contactsMode);
+		chatConsole.SetActive(true);
+		contactsConsole.SetActive(false);
 		ClientManager.chat.SwitchTab(uuid);
 	}
 
 	public void PopulateContacts()
     {
-        ContactsList.ContactEntry contactEntry;
-        int counter = 0;
-        List<UUID> avatarNames = new List<UUID>();
+        if (contactsList == null) return;
+
+        contactsList.ClearContacts();
+
+        List<UUID> avatarNamesToRequest = new List<UUID>();
 		ClientManager.client.Friends.FriendList.ForEach(delegate (FriendInfo friend)
 		{
-            // append the name of the friend to our output
-            //Debug.Log($"Contact: {friend.Name} {friend.UUID}");
-            contactEntry = contactsList.AddContact(friend.Name, friend.UUID);
-
-            contactEntry.button.SetActive(true);
-            //contactsRectTransform.rect.height += 30f;
-            Rect rect = contactsRectTransform.rect;
-            Rect parentRect = contactsRectTransform.transform.parent.GetComponent<RectTransform>().rect;
-            avatarNames.Add(friend.UUID);
-			//contactsRectTransform.
-
-			/*contactsRectTransform.localScale = new Vector3(1f, 1f, 1f);
-			contactsRectTransform.anchorMax = new Vector2(1f, 1f);
-			contactsRectTransform.anchorMin = new Vector2(0f, 0f);
-			contactsRectTransform.sizeDelta = new Vector2(0f, (parentRect.height + 30f));
-			contactsRectTransform.offsetMin = new Vector3(0f, 1f);
-		    contactsRectTransform.offsetMax = new Vector3(0f, -0f);*/
-
-			//contactsRectTransform.rect = rect;
+            contactsList.AddContact(friend.Name, friend.UUID, friend.IsOnline);
+            if (string.IsNullOrEmpty(friend.Name))
+            {
+                avatarNamesToRequest.Add(friend.UUID);
+            }
 		});
-		ClientManager.client.Avatars.RequestAvatarNames(avatarNames);
 
-
+        if (avatarNamesToRequest.Count > 0)
+        {
+            // This will trigger name updates, which should be handled by the ContactsList
+            ClientManager.client.Avatars.RequestAvatarNames(avatarNamesToRequest);
+        }
 	}
-
 }

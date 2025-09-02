@@ -158,8 +158,6 @@ public class SimManager : MonoBehaviour
 
 	public Transform[] hudAnchors;
 
-	private bool _playerControllerAttached = false;
-
 	private IReadyTextureQueue _readyTextureQueue;
 	private IDecodedMeshQueue _decodedMeshQueue;
 
@@ -216,11 +214,6 @@ public class SimManager : MonoBehaviour
 			this.meshObjectManager = FindFirstObjectByType<MeshObjectManager>();
 		}
 
-		// Ensure there is an InteractionManager in the scene
-		if (FindObjectOfType<InteractionManager>() == null)
-		{
-			gameObject.AddComponent<InteractionManager>();
-		}
 	}
 
 	void Start()
@@ -393,21 +386,6 @@ public class SimManager : MonoBehaviour
 					avatar.myAvatar.parent = spd.meshHolder.transform.root;
 					avatar.myAvatar.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 					avatar.rotation = spd.prim.Rotation.ToUnity();
-
-					if (!_playerControllerAttached)
-					{
-						var avatarRoot = spd.obj.transform.root.gameObject;
-
-						// Add the movement controller
-						avatarRoot.AddComponent<MovementController>();
-
-						// Add and configure the camera controller
-						var cameraControls = Camera.main.gameObject.AddComponent<CameraControls>();
-						cameraControls.origin = avatarRoot.transform;
-
-						_playerControllerAttached = true;
-						_log.LogInformation("Attached MovementController and CameraControls to local avatar.");
-					}
 				}
 			}
 			else
