@@ -1,25 +1,33 @@
 using OpenMetaverse;
 using System;
-using System.Collections.Concurrent;
+using System.Collections;
 using System.Collections.Generic;
-using TMPro;
+using System.Collections.Concurrent;
 using UnityEngine;
+using TMPro;
 using static Chat;
+using System.IO;
+using OggVorbisEncoder;
+#if UNITY_EDITOR
+using Unity.VisualScripting;
+using UnityEditor.PackageManager;
+using UnityEditor.VersionControl;
+#endif
+using OMVVector2 = OpenMetaverse.Vector2;
+using Vector2 = UnityEngine.Vector2;
 
 public class Chat : MonoBehaviour
 {
 	public UnityEngine.UI.Button dummyButton;
+    // Start is called before the first frame update
     public TMP_Text log;
+    //public GameObjec
     public GameObject chatTabButtonPrefab;
 	public GameObject nearbyButton;
-    public Transform chatTabRoot; // A VerticalLayoutGroup should be attached to this object's GameObject.
+    public Transform chatTabRoot;
 	public TMP_InputField input;
 	public TMP_Text inputText;
-	public Color unreadColor = Color.yellow;
-	private Color _defaultTabColor;
 	UUID selectedChat = UUID.Zero;
-	private bool _isGroupChatSelected = false;
-
 
 	public Dictionary<UUID, string> avatarNames = new();
 	private void Awake()
@@ -29,40 +37,46 @@ public class Chat : MonoBehaviour
 	public class ChatTab
     {
         public string name;
-        public UUID uuid; // For IMs, this is the agent ID. For Group Chat, it's the session ID.
+        public UUID uuid;
         public string log;
         public GameObject tabButton;
-		public bool hasUnreadMessages = false;
-		public bool isGroupChat = false;
+    }
+
+
+    public class ChatEvent
+    {
+        public UUID uuid;
+        public string newchat;
     }
 
     public ConcurrentDictionary<UUID, ChatTab> tabs = new();
     public ConcurrentQueue<InstantMessageEventArgs> imEvents = new();
-	private readonly ConcurrentQueue<string> chatStrings = new();
 
     void Start()
     {
-		_defaultTabColor = nearbyButton.GetComponentInChildren<TMP_Text>().color;
-
-		// Event subscriptions
 		ClientManager.client.Self.IM += new EventHandler<InstantMessageEventArgs>(IncomingIM);
 		ClientManager.client.Self.ChatFromSimulator += new EventHandler<ChatEventArgs>(ChatFromSimulator);
-		ClientManager.client.Groups.GroupNameReply += new EventHandler<GroupNameReplyEventArgs>(Groups_GroupNameReply);
 
-		// Setup the default "Local Chat" tab
 		tabs.TryAdd(UUID.Zero, new ChatTab() { log = string.Empty, name = "Local Chat", tabButton = nearbyButton, uuid = UUID.Zero});
+
+		//just storing this here for future use, no reason for why here, just here
+		//AudioClip clip;
+		//clip.SetData()
+		/*using (var vorbis = new NVorbis.VorbisReader(new MemoryStream(sample_data, false)))
+		{
+			Debug.Log($"Found ogg ch={vorbis.Channels} freq={vorbis.SampleRate} samp={vorbis.TotalSamples}");
+			float[] _audioBuffer = new float[vorbis.TotalSamples]; // Just dump everything
+			int read = vorbis.ReadSamples(_audioBuffer, 0, (int)vorbis.TotalSamples);
+			AudioClip audioClip = AudioClip.Create(samplename, (int)(vorbis.TotalSamples / vorbis.Channels), vorbis.Channels, vorbis.SampleRate, false);
+			audioClip.SetData(_audioBuffer, 0);
+			samples.Add(audioClip);
+		}*/
+
 	}
 
-    void OnDestroy()
+	void IncomingIM(object sender, InstantMessageEventArgs e)
     {
-        if (ClientManager.client == null) return;
-		ClientManager.client.Self.IM -= new EventHandler<InstantMessageEventArgs>(IncomingIM);
-		ClientManager.client.Self.ChatFromSimulator -= new EventHandler<ChatEventArgs>(ChatFromSimulator);
-		ClientManager.client.Groups.GroupNameReply -= new EventHandler<GroupNameReplyEventArgs>(Groups_GroupNameReply);
-	}
-
-    void IncomingIM(object sender, InstantMessageEventArgs e)
-    {
+		//Debug.Log($"Incoming IM from: {e.IM.FromAgentName}: {e.IM.Message}");
         imEvents.Enqueue(e);
     }
 
@@ -71,176 +85,168 @@ public class Chat : MonoBehaviour
 		avatarNames.TryAdd(uuid, name);
 	}
 
+	private readonly ConcurrentQueue<string> chatStrings = new();
 	void ChatFromSimulator(object sender, ChatEventArgs e)
 	{
-		// Only handle Normal, Whisper, and Shout for local chat display
-		if (e.Type == ChatType.Normal || e.Type == ChatType.Whisper || e.Type == ChatType.Shout)
+		if ((int)e.Type <= 3)
 		{
-			string chat;
+			string chat = ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: {e.Message}").Replace("<", "<\u200B"); ;
+			//chat = Regex.Replace(chat, "<.*?>", String.Empty);
+
 			try
 			{
-				string senderName = "Unknown";
-				if (ClientManager.simManager.scenePrims.TryGetValue(e.SourceID, out var scenePrim))
-                {
-					senderName = scenePrim.name;
-                }
-
-				chat = $"[{DateTime.UtcNow:HH:mm:ss}] {senderName}: {e.Message}".Replace("<", "<\u200B"); ;
-
 				if (e.Type == ChatType.Whisper)
 				{
-					chat = $"[{DateTime.UtcNow:HH:mm:ss}] {senderName}: <i><size=80%>{e.Message}</size></i>";
+					chat = $"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: <i><size=80%>{e.Message}</size></i>";
 				}
 				else if (e.Type == ChatType.Shout)
 				{
-					chat = $"[{DateTime.UtcNow:HH:mm:ss}] {senderName}: <b><size=120%>{e.Message}</size></b>";
+					chat = $"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.simManager.scenePrims[ClientManager.simManager.scenePrimIndexUUID[e.SourceID]].name}: <b><size=120%>{e.Message}</size></b>";
 				}
+				//Debug.Log(chat);
 				chatStrings.Enqueue(chat);
 
-				if (selectedChat != UUID.Zero)
-                {
-					NotifyUnread(UUID.Zero);
-				}
 			}
-			catch (Exception ex)
+			catch
 			{
-				Debug.LogError($"Error processing incoming chat message: {ex.Message}");
 			}
 		}
 	}
 
 	void ParseIMEvents()
     {
-		while (imEvents.TryDequeue(out var e))
+		string chat;
+		while (imEvents.Count > 0)
 		{
-			if (e.IM.Message == string.Empty || e.IM.Dialog == InstantMessageDialog.StartTyping || e.IM.Dialog == InstantMessageDialog.StopTyping) continue;
-
-			bool isGroup = e.IM.Dialog == InstantMessageDialog.SessionSend || e.IM.Dialog == InstantMessageDialog.SessionOffline;
-			UUID tabId = isGroup ? e.IM.IMSessionID : e.IM.FromAgentID;
-
-			string chat = $"[{DateTime.UtcNow:HH:mm:ss}] {e.IM.FromAgentName}: {e.IM.Message}".Replace("<", "<\u200B");
-
-			if (!tabs.TryGetValue(tabId, out var tab))
+			if (imEvents.TryDequeue(out var e))
 			{
-				// New session
-				string tabName = isGroup ? "Group Chat..." : e.IM.FromAgentName;
-				tab = CreateNewTab(tabId, tabName, isGroup);
-				if(isGroup)
+				if (e.IM.Message == string.Empty || e.IM.Dialog == InstantMessageDialog.StartTyping || e.IM.Dialog == InstantMessageDialog.StopTyping) continue;
+                chat = ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {e.IM.FromAgentName}: {e.IM.Message}").Replace("<", "<\u200B");
+				if (tabs.ContainsKey(e.IM.FromAgentID))
+				{
+					//Debug.Log("Current IM session");
+                    tabs[e.IM.FromAgentID].log += "\n" + chat;
+				}
+                else
                 {
-					ClientManager.client.Groups.RequestGroupName(tabId);
-                }
+					//Debug.Log("New IM session");
+					GameObject b = Instantiate(nearbyButton, nearbyButton.transform.parent, true);
+					ChatTab chatTab = new()
+					{
+						name = e.IM.FromAgentName,
+						uuid = e.IM.FromAgentID,
+						log = chat,
+						tabButton = b
+					};
+
+
+					//RectTransform rect = b.GetComponent<RectTransform>();
+
+					//b.transform.parent = chatTabRoot;
+					ClientManager.soundManager.PlayUISound(new UUID("67cc2844-00f3-2b3c-b991-6418d01e1bb7"));
+					RectTransform rect = b.GetComponent<RectTransform>();
+					Vector2 anchoredPos = rect.anchoredPosition;
+					anchoredPos.y -= 30f;
+					rect.anchoredPosition = anchoredPos;
+
+					//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
+					//rect.localPosition = rect.anchoredPosition;
+					//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
+					//b.transform.localScale = nearbyButton.transform.localScale;
+					//b.transform.localScale = Vector3.one;
+
+					UI_IMButton button = chatTab.tabButton.GetComponent<UI_IMButton>();
+                    button.buttonText.text = chatTab.name;
+					button.uuid = chatTab.uuid;
+
+					tabs.TryAdd(e.IM.FromAgentID, chatTab);
+				}
 			}
-
-			tab.log += "\n" + chat;
-
-			if (selectedChat != tabId)
+			if (selectedChat == e.IM.FromAgentID)
 			{
-				NotifyUnread(tabId);
+				log.text = tabs[e.IM.FromAgentID].log;
 			}
 
-			if (selectedChat == tabId)
-			{
-				log.text = tab.log;
-			}
 		}
 	}
-
-	private ChatTab CreateNewTab(UUID id, string name, bool isGroup)
-    {
-		GameObject b = Instantiate(nearbyButton, chatTabRoot, false);
-		b.SetActive(true);
-		var newTab = new ChatTab
-		{
-			name = name,
-			uuid = id,
-			log = string.Empty,
-			tabButton = b,
-			isGroupChat = isGroup
-		};
-
-		UI_IMButton button = newTab.tabButton.GetComponent<UI_IMButton>();
-		button.buttonText.text = newTab.name;
-		button.uuid = newTab.uuid;
-
-		tabs.TryAdd(id, newTab);
-		return newTab;
-	}
-
-	private void Groups_GroupNameReply(object sender, GroupNameReplyEventArgs e)
-    {
-		if (tabs.TryGetValue(e.GroupID, out var tab))
-        {
-			tab.name = e.GroupName;
-			tab.tabButton.GetComponent<UI_IMButton>().buttonText.text = e.GroupName;
-        }
-    }
 
 	public void StartIM(UUID agentID)
 	{
-		if (tabs.ContainsKey(agentID))
-        {
-			SwitchTab(agentID);
-			return;
-        }
-
+		Debug.Log("New IM session");
+		GameObject b = Instantiate(nearbyButton, nearbyButton.transform.parent, true);
 		string name = "Loading...";
-		if(avatarNames.ContainsKey(agentID)) name = avatarNames[agentID];
+		if(avatarNames.ContainsKey(agentID))name = avatarNames[agentID];
+		ChatTab chatTab = new()
+		{
+			name = name,
+			uuid = agentID,
+			log = string.Empty,
+			tabButton = b
+		};
 
-		CreateNewTab(agentID, name, false);
-		SwitchTab(agentID);
-	}
+		//RectTransform rect = b.GetComponent<RectTransform>();
 
-	private void NotifyUnread(UUID tabId)
-    {
-		if (tabs.TryGetValue(tabId, out var tab) && !tab.hasUnreadMessages)
-        {
-			tab.hasUnreadMessages = true;
-			tab.tabButton.GetComponentInChildren<TMP_Text>().color = unreadColor;
-			if(tabId != UUID.Zero) // Don't play sound for local chat notifications
-			{
-				ClientManager.soundManager.PlayUISound(new UUID("67cc2844-00f3-2b3c-b991-6418d01e1bb7"));
-			}
-		}
+		//b.transform.parent = chatTabRoot;
+
+		RectTransform rect = b.GetComponent<RectTransform>();
+		Vector2 anchoredPos = rect.anchoredPosition;
+		anchoredPos.y -= 30f;
+		rect.anchoredPosition = anchoredPos;
+
+		//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
+		//rect.localPosition = rect.anchoredPosition;
+		//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
+		//b.transform.localScale = nearbyButton.transform.localScale;
+		//b.transform.localScale = Vector3.one;
+
+		UI_IMButton button = chatTab.tabButton.GetComponent<UI_IMButton>();
+		button.buttonText.text = chatTab.name;
+		button.uuid = chatTab.uuid;
+
+		tabs.TryAdd(agentID, chatTab);
 	}
 
 	public void ParseChatEvents()
 	{
-		while (chatStrings.TryDequeue(out var chat))
+		while (chatStrings.Count > 0)
 		{
-			tabs[UUID.Zero].log += "\n" + chat;
-			if (selectedChat == UUID.Zero)
+			if (chatStrings.TryDequeue(out var chat))
 			{
-				log.text = tabs[UUID.Zero].log;
+				tabs[UUID.Zero].log += "\n" + chat;
+				if (selectedChat == UUID.Zero)
+				{
+					log.text = tabs[UUID.Zero].log;
+				}
 			}
 		}
 	}
 
 	public void SwitchTab(UUID uuid)
     {
-        if (tabs.TryGetValue(uuid, out var tab))
+        if (tabs.ContainsKey(uuid))
         {
 			selectedChat = uuid;
-			_isGroupChatSelected = tab.isGroupChat;
-            log.text = tab.log;
-
-			if (tab.hasUnreadMessages)
-            {
-				tab.hasUnreadMessages = false;
-				tab.tabButton.GetComponentInChildren<TMP_Text>().color = _defaultTabColor;
-			}
+            log.text = tabs[uuid].log;
         }
 		else
 		{
+			Debug.Log("Starting new IM");
 			StartIM(uuid);
 		}
 	}
 
+	// Update is called once per frame
+	float lastEnterUp = 0f;
 	void Update()
     {
         ParseIMEvents();
 		ParseChatEvents();
 
-		if(!input.isFocused && Input.GetKeyDown(KeyCode.Return))
+		lastEnterUp += Time.deltaTime;
+
+		if (Input.GetKeyUp(KeyCode.Return))
+			lastEnterUp = 0f;
+		if(!input.isFocused && Input.GetKeyDown(KeyCode.Return) && lastEnterUp >= 0.25f)
 		{
 			input.Select();
 			input.ActivateInputField();
@@ -250,36 +256,50 @@ public class Chat : MonoBehaviour
 			ClientManager.avatar.canMove = !input.isFocused;
 	}
 
+
 	public void SendChat()
 	{
-		if (string.IsNullOrEmpty(input.text)) return;
-
-		string message = input.text;
-		input.text = string.Empty;
-
+		if (input.text == string.Empty) return;
 		if (selectedChat == UUID.Zero)
 		{
-			// Local Chat
-			ClientManager.client.Self.Chat(message, 0, ChatType.Normal);
+			if (Input.GetKeyDown(KeyCode.Return))// && ClientManager.active)
+			{
+				if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+				{
+					ClientManager.client.Self.Chat(inputText.text, 0, ChatType.Shout);
+					//Debug.Log("Shout");
+				}
+				else if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+				{
+					ClientManager.client.Self.Chat(inputText.text, 0, ChatType.Whisper);
+					//Debug.Log("Whisper");
+				}
+				else
+				{
+					ClientManager.client.Self.Chat(inputText.text, 0, ChatType.Normal);
+					//Debug.Log("Normal");
+				}
+				input.text = string.Empty;
+			}
+			else
+			{
+			}
 		}
 		else
 		{
-			// IM or Group Chat
-			if (_isGroupChatSelected)
-			{
-				ClientManager.client.Self.InstantMessage(ClientManager.client.Self.Name, selectedChat, message, selectedChat, InstantMessageDialog.SessionSend, InstantMessageOnline.Online, this.transform.position, UUID.Zero, new byte[0]);
-			}
-			else
-            {
-				ClientManager.client.Self.InstantMessage(selectedChat, message);
-			}
-
-			// Add our own message to the log
-			tabs[selectedChat].log += $"\n[{DateTime.UtcNow:HH:mm:ss}] {ClientManager.client.Self.Name}: {message}".Replace("<", "<\u200B");
+			ClientManager.client.Self.InstantMessage(selectedChat, inputText.text);
+			tabs[selectedChat].log += "\n" + ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {ClientManager.client.Self.Name}: {inputText.text}").Replace("<", "<\u200B");
 			log.text = tabs[selectedChat].log;
+			input.text = string.Empty;
 		}
 
 		dummyButton.Select();
 		input.DeactivateInputField();
+		//dummyButton.
+
+
+
 	}
+
+
 }
