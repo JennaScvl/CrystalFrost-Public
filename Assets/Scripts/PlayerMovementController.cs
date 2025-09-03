@@ -3,9 +3,11 @@ using OpenMetaverse;
 
 public class PlayerMovementController : MonoBehaviour
 {
+    public bool MouselookEnabled { get; set; } = false;
+
     private GridClient client;
     private AgentManager.ControlFlags controlFlags = 0;
-    private bool isFlying = false; // Add a flag to track flying state
+    private bool isFlying = false;
 
     void Start()
     {
@@ -55,14 +57,29 @@ public class PlayerMovementController : MonoBehaviour
             flags |= AgentManager.ControlFlags.AGENT_CONTROL_RIGHT_POS;
         }
 
-        // Turn Left/Right
-        if (Input.GetKey(KeyCode.LeftArrow))
+        // Turn Left/Right (Keyboard)
+        if (!MouselookEnabled)
         {
-            flags |= AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
+                flags |= AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
+            }
+            if (Input.GetKey(KeyCode.RightArrow))
+            {
+                flags |= AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
+            }
         }
-        if (Input.GetKey(KeyCode.RightArrow))
+        else // Turn Left/Right (Mouse)
         {
-            flags |= AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
+            float mouseX = Input.GetAxis("Mouse X");
+            if (mouseX < -0.1f)
+            {
+                flags |= AgentManager.ControlFlags.AGENT_CONTROL_TURN_LEFT;
+            }
+            else if (mouseX > 0.1f)
+            {
+                flags |= AgentManager.ControlFlags.AGENT_CONTROL_TURN_RIGHT;
+            }
         }
 
         // Jump / Fly Up
