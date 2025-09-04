@@ -123,7 +123,7 @@ public class ObjectProximityHandler : IObjectProximityHandler
 			var nearHeight = 2 * tanHalfFov * this.cameraNearClip;
 			var nearWidth = nearHeight * this.cameraAspect;
 			var farHeight = 2 * tanHalfFov * this.cameraFarClip;
-			var farWidth = farHeight * this.cameraAspect;
+			var farWidth = farHeight * (16.0f / 9.0f); // TODO: this needs to be changed to the actual aspect ratio of the camera
 
 			// Calculate frustum points
 			var nearCenter = this.cameraPosition + this.cameraForward * this.cameraNearClip;
@@ -178,7 +178,7 @@ public class ObjectProximityHandler : IObjectProximityHandler
 			var nearHeight = 2 * tanHalfFov * this.cameraNearClip;
 			var nearWidth = nearHeight * this.cameraAspect;
 			var farHeight = 2 * tanHalfFov * this.cameraFarClip;
-			var farWidth = farHeight * this.cameraAspect;
+			var farWidth = farHeight * (16.0f / 9.0f); // TODO: this needs to be changed to the actual aspect ratio of the camera
 
 			// Calculate frustum points
 			var nearCenter = this.cameraPosition + this.cameraForward * this.cameraNearClip;
@@ -370,8 +370,7 @@ public class ObjectProximityHandler : IObjectProximityHandler
 		}
 
 
-		// This is a simple approximation that should be good enough for now
-		var primRadius = primEvent.Prim.Scale.Length() * 0.5f;
+		var primRadius = _viewConfig.DefaultSphereRadius; // TODO: Get the radius of the bounding sphere prim
 
 
 		if (this.frustumManager.IntersectsSphere(primPosition, primRadius))

@@ -4,15 +4,7 @@ Open source Unity 2021.3.6f1 LTS based Second Life viewer using LibreMetaverse.
 Crystal Frost is unity based a homebrew client for Second Life and Open Sim.
 
 # Current status
-The project is currently in a state of active development. Recently, two major feature branches have been merged into `main`, bringing in a host of new features and refactoring. The focus is now on stabilizing the codebase, fixing bugs, and preparing for future feature development.
-
-# Features
-- Network statistics display
-- Snapshot tool for taking in-world pictures
-- Group chat
-- Basic inventory UI
-- Object inspector
-- Profile viewer
+Will fill this out when I have the spoons for it.
 
 # Joining the Project
 Also please contact on SL as Berry Bunny, or on Discord as .Kallisti if you want to be added as a contributor and help out in a more direct manner.

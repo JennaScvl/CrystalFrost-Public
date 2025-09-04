@@ -121,11 +121,12 @@ public class SimManager : MonoBehaviour
 	/// </summary>
 	public ConcurrentDictionary<ulong, SimulatorContainer> simulators = new ConcurrentDictionary<ulong, SimulatorContainer>();
 	// Do an action on all the simulators
+	// TODO: Figure out locking (should list be locked when iterating?). Maybe use yield return?
 	public void ForEachSimContainer(Action<SimulatorContainer> action)
 	{
-		foreach (var simContainer in simulators.Values)
+		foreach (var kvp in simulators)
 		{
-			action(simContainer);
+			action(kvp.Value);
 		}
 	}
 
@@ -708,7 +709,8 @@ public class SimManager : MonoBehaviour
 #if USE_FUNLY_SKY
         timeOfDayController.skyTime = Mathf.Repeat((sunPhase * 0.15915494309189533576888376337251f) + 0.25f, 1f);
 #else
-		sun.transform.forward = ClientManager.client.Grid.SunDirection.ToVector3();
+		// TODO - Generic Sun Movement
+		//sun.transform.forward = ClientManager.client.Grid.SunDirection.ToVector3();
 #endif
 
 		//TranslateObjects(t);
@@ -836,7 +838,11 @@ public class SimManager : MonoBehaviour
 	{
 		ServiceQueueRepeatedly(_decodedAnimationQueue, this.meshObjectManager.SetupAnimation);
 
-		ServiceQueueRepeatedly(_loadedAnimationRequest, (item) => this.meshObjectManager.SetupAnimation(item.Item2, item.Item1));
+		// TODO: Refractor this maybe?
+		while (_loadedAnimationRequest.TryDequeue(out var animationItem) && animationItem is not null)
+		{
+			this.meshObjectManager.SetupAnimation(animationItem.Item2, animationItem.Item1);
+		}
 	}
 
 
@@ -1317,10 +1323,10 @@ public class SimManager : MonoBehaviour
 				// Doesn't seem we can do anything with this.
 				break;
 			case PrimType.Sculpt:
-				SetupSculptRenderer(obj);
+				// TODO RequestSculpt()
 				break;
 			case PrimType.Mesh:
-				SetupMeshRenderer(obj);
+				// TODO RequestMesh()
 				break;
 			//case PrimType.Box:
 			//case PrimType.Cylinder:
@@ -1330,12 +1336,13 @@ public class SimManager : MonoBehaviour
 			//case PrimType.Tube:
 			//case PrimType.Ring:
 			default:
-				SetupClassicPrimRenderer(obj);
+				// TODO RequestGeneratedMesh()
 				break;
 		}
 
-		SetupLight(obj);
-		SetupParticles(obj);
+		// TODO Setup Lights
+
+		// TODO Setup Particles.
 	}
 
 	/// <summary>
@@ -1400,6 +1407,7 @@ public class SimManager : MonoBehaviour
 	private void SetupParticles(SceneObject sceneObject)
 	{
 		if (sceneObject.SimObject.ParticleSystem.Pattern == Primitive.ParticleSystem.SourcePattern.None) return;
+		// TODO - Kage
 		//	UnityEngine.ParticleSystem ps = spd.obj.AddComponent<UnityEngine.ParticleSystem>();
 		//	spd.SetupParticles();
 		_log.LogDebug(nameof(SetupParticles) + " not implemented.");
