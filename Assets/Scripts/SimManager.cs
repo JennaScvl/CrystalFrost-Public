@@ -218,6 +218,7 @@ public class SimManager : MonoBehaviour
 
 	void Start()
 	{
+        gameObject.AddComponent<StatusUIManager>();
 		client = ClientManager.client;
 
 		avatar = gameObject.GetComponent<Avatar>();

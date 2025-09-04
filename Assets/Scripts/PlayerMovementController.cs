@@ -15,10 +15,12 @@ public class PlayerMovementController : MonoBehaviour
     private bool wasFlying = false;
     private bool wasJumping = false;
     private bool wasStanding = false;
+    private StatusUIManager statusUIManager;
 
     void Start()
     {
         client = ClientManager.client;
+        statusUIManager = FindObjectOfType<StatusUIManager>();
     }
 
     void Update()
@@ -28,6 +30,10 @@ public class PlayerMovementController : MonoBehaviour
         {
             isFlying = !isFlying;
             client.Self.Fly(isFlying);
+            if (statusUIManager != null)
+            {
+                statusUIManager.SetFlyingStatus(isFlying);
+            }
         }
 
         var newFlags = GetControlFlagsFromInput();
@@ -114,32 +120,49 @@ public class PlayerMovementController : MonoBehaviour
 
     private void UpdateAnimations(AgentManager.ControlFlags currentFlags)
     {
-        bool isWalking = (currentFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_POS) != 0 ||
-                         (currentFlags & AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG) != 0 ||
-                         (currentFlags & AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS) != 0 ||
-                         (currentFlags & AgentManager.ControlFlags.AGENT_CONTROL_RIGHT_POS) != 0;
-
+        bool isWalking = (currentFlags & (AgentManager.ControlFlags.AGENT_CONTROL_AT_POS | AgentManager.ControlFlags.AGENT_CONTROL_AT_NEG | AgentManager.ControlFlags.AGENT_CONTROL_LEFT_POS | AgentManager.ControlFlags.AGENT_CONTROL_RIGHT_POS)) != 0;
         bool isJumping = (currentFlags & AgentManager.ControlFlags.AGENT_CONTROL_UP_POS) != 0 && !isFlying;
 
         // Walking
-        if (isWalking && !wasWalking) { client.Self.AnimationStart(Animations.WALK, true); }
-        else if (!isWalking && wasWalking) { client.Self.AnimationStop(Animations.WALK, true); }
+        if (isWalking && !wasWalking)
+        {
+            client.Self.AnimationStop(STAND, true);
+            client.Self.AnimationStop(FLY, true);
+            client.Self.AnimationStart(WALK, true);
+        }
+        else if (!isWalking && wasWalking)
+        {
+            client.Self.AnimationStop(WALK, true);
+        }
         wasWalking = isWalking;
 
         // Flying
-        if (isFlying && !wasFlying) { client.Self.AnimationStart(Animations.FLY, true); }
-        else if (!isFlying && wasFlying) { client.Self.AnimationStop(Animations.FLY, true); }
+        if (isFlying && !wasFlying)
+        {
+            client.Self.AnimationStop(STAND, true);
+            client.Self.AnimationStop(WALK, true);
+            client.Self.AnimationStart(FLY, true);
+        }
+        else if (!isFlying && wasFlying)
+        {
+            client.Self.AnimationStop(FLY, true);
+        }
         wasFlying = isFlying;
 
         // Jumping
-        if (isJumping && !wasJumping) { client.Self.AnimationStart(Animations.JUMP, false); }
+        if (isJumping && !wasJumping)
+        {
+            client.Self.AnimationStart(JUMP, false);
+        }
         wasJumping = isJumping;
 
         // Standing
-        bool isStanding = !isWalking && !isFlying && !isJumping;
+        bool isStanding = !isWalking && !isFlying;
         if (isStanding && !wasStanding)
         {
-            client.Self.AnimationStart(Animations.STAND, true);
+            client.Self.AnimationStop(WALK, true);
+            client.Self.AnimationStop(FLY, true);
+            client.Self.AnimationStart(STAND, true);
         }
         wasStanding = isStanding;
     }
