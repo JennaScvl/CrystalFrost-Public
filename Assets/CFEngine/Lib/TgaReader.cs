@@ -70,8 +70,8 @@ namespace CrystalFrost.Lib
             Height = r.ReadInt16();
             BitsPerPixel = r.ReadByte();
 
-            // Skip a byte of header information we don't care about.
-            r.BaseStream.Seek(1, SeekOrigin.Current);
+            // Image descriptor.
+            var imageDescriptor = r.ReadByte();
 
             var pixels = Width * Height;
 
@@ -102,6 +102,36 @@ namespace CrystalFrost.Lib
             {
                 Bitmap = null;
                 _log.UnsupportedBitDepth(BitsPerPixel);
+                return;
+            }
+
+            // Check the origin bit in the image descriptor.
+            // Bit 5 is the origin bit. 0 = bottom-left, 1 = top-left.
+            if ((imageDescriptor & (1 << 5)) == 0)
+            {
+                FlipVertical();
+            }
+        }
+
+        private void FlipVertical()
+        {
+            if (Bitmap == null)
+            {
+                return;
+            }
+
+            var bytesPerPixel = BitsPerPixel / 8;
+            var stride = Width * bytesPerPixel;
+            var tempRow = new byte[stride];
+
+            for (int i = 0; i < Height / 2; i++)
+            {
+                var topRow = i * stride;
+                var bottomRow = (Height - i - 1) * stride;
+
+                System.Buffer.BlockCopy(Bitmap, topRow, tempRow, 0, stride);
+                System.Buffer.BlockCopy(Bitmap, bottomRow, Bitmap, topRow, stride);
+                System.Buffer.BlockCopy(tempRow, 0, Bitmap, bottomRow, stride);
             }
         }
     }
