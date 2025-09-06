@@ -370,7 +370,7 @@ public class ObjectProximityHandler : IObjectProximityHandler
 		}
 
 
-		var primRadius = _viewConfig.DefaultSphereRadius; // TODO: Get the radius of the bounding sphere prim 
+		var primRadius = _viewConfig.DefaultSphereRadius; // TODO: Get the radius of the bounding sphere prim
 
 
 		if (this.frustumManager.IntersectsSphere(primPosition, primRadius))
