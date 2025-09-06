@@ -20,11 +20,12 @@ public class Chat : MonoBehaviour
 {
 	public UnityEngine.UI.Button dummyButton;
     // Start is called before the first frame update
-    public TMP_Text log;
-    //public GameObjec
+    public TMP_Text log; // This will now be the text within the active content panel
     public GameObject chatTabButtonPrefab;
+	public GameObject chatContentPanelPrefab; // Prefab for the chat history panel
 	public GameObject nearbyButton;
     public Transform chatTabRoot;
+	public Transform chatContentRoot; // Parent for all content panels
 	public TMP_InputField input;
 	public TMP_Text inputText;
 	UUID selectedChat = UUID.Zero;
@@ -40,6 +41,7 @@ public class Chat : MonoBehaviour
         public UUID uuid;
         public string log;
         public GameObject tabButton;
+		public GameObject contentPanel; // To hold the chat history for this tab
     }
 
 
@@ -122,88 +124,57 @@ public class Chat : MonoBehaviour
 			{
 				if (e.IM.Message == string.Empty || e.IM.Dialog == InstantMessageDialog.StartTyping || e.IM.Dialog == InstantMessageDialog.StopTyping) continue;
                 chat = ($"[{System.DateTime.UtcNow.ToShortTimeString()}] {e.IM.FromAgentName}: {e.IM.Message}").Replace("<", "<\u200B");
-				if (tabs.ContainsKey(e.IM.FromAgentID))
-				{
-					//Debug.Log("Current IM session");
-                    tabs[e.IM.FromAgentID].log += "\n" + chat;
-				}
-                else
+
+				if (!tabs.ContainsKey(e.IM.FromAgentID))
                 {
-					//Debug.Log("New IM session");
-					GameObject b = Instantiate(nearbyButton, nearbyButton.transform.parent, true);
-					ChatTab chatTab = new()
-					{
-						name = e.IM.FromAgentName,
-						uuid = e.IM.FromAgentID,
-						log = chat,
-						tabButton = b
-					};
-
-
-					//RectTransform rect = b.GetComponent<RectTransform>();
-
-					//b.transform.parent = chatTabRoot;
+					// This is a new IM session, create the tab and content area
+					StartIM(e.IM.FromAgentID, e.IM.FromAgentName);
 					ClientManager.soundManager.PlayUISound(new UUID("67cc2844-00f3-2b3c-b991-6418d01e1bb7"));
-					RectTransform rect = b.GetComponent<RectTransform>();
-					Vector2 anchoredPos = rect.anchoredPosition;
-					anchoredPos.y -= 30f;
-					rect.anchoredPosition = anchoredPos;
+				}
 
-					//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
-					//rect.localPosition = rect.anchoredPosition;
-					//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
-					//b.transform.localScale = nearbyButton.transform.localScale;
-					//b.transform.localScale = Vector3.one;
-
-					UI_IMButton button = chatTab.tabButton.GetComponent<UI_IMButton>();
-                    button.buttonText.text = chatTab.name;
-					button.uuid = chatTab.uuid;
-
-					tabs.TryAdd(e.IM.FromAgentID, chatTab);
+				// Append log and update UI if it's the selected tab
+				tabs[e.IM.FromAgentID].log += "\n" + chat;
+				if (selectedChat == e.IM.FromAgentID)
+				{
+					log.text = tabs[e.IM.FromAgentID].log;
 				}
 			}
-			if (selectedChat == e.IM.FromAgentID)
-			{
-				log.text = tabs[e.IM.FromAgentID].log;
-			}
-
 		}
 	}
 
-	public void StartIM(UUID agentID)
+	public void StartIM(UUID agentID, string agentName = "Loading...")
 	{
-		Debug.Log("New IM session");
-		GameObject b = Instantiate(nearbyButton, nearbyButton.transform.parent, true);
-		string name = "Loading...";
-		if(avatarNames.ContainsKey(agentID))name = avatarNames[agentID];
+		if (tabs.ContainsKey(agentID))
+		{
+			SwitchTab(agentID);
+			return;
+		}
+
+		// Instantiate UI elements from prefabs
+		GameObject tabButton = Instantiate(chatTabButtonPrefab, chatTabRoot);
+		GameObject contentPanel = Instantiate(chatContentPanelPrefab, chatContentRoot);
+
+		if(avatarNames.ContainsKey(agentID))
+		{
+			agentName = avatarNames[agentID];
+		}
+
 		ChatTab chatTab = new()
 		{
-			name = name,
+			name = agentName,
 			uuid = agentID,
 			log = string.Empty,
-			tabButton = b
+			tabButton = tabButton,
+			contentPanel = contentPanel
 		};
 
-		//RectTransform rect = b.GetComponent<RectTransform>();
-
-		//b.transform.parent = chatTabRoot;
-
-		RectTransform rect = b.GetComponent<RectTransform>();
-		Vector2 anchoredPos = rect.anchoredPosition;
-		anchoredPos.y -= 30f;
-		rect.anchoredPosition = anchoredPos;
-
-		//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
-		//rect.localPosition = rect.anchoredPosition;
-		//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
-		//b.transform.localScale = nearbyButton.transform.localScale;
-		//b.transform.localScale = Vector3.one;
-
-		UI_IMButton button = chatTab.tabButton.GetComponent<UI_IMButton>();
+		// Configure the new tab button
+		UI_IMButton button = tabButton.GetComponent<UI_IMButton>();
 		button.buttonText.text = chatTab.name;
 		button.uuid = chatTab.uuid;
 
 		tabs.TryAdd(agentID, chatTab);
+		SwitchTab(agentID); // Switch to the newly created tab
 	}
 
 	public void ParseChatEvents()
@@ -215,7 +186,11 @@ public class Chat : MonoBehaviour
 				tabs[UUID.Zero].log += "\n" + chat;
 				if (selectedChat == UUID.Zero)
 				{
-					log.text = tabs[UUID.Zero].log;
+					// Find the content panel for local chat and update its text
+					if(tabs[UUID.Zero].contentPanel != null)
+					{
+						tabs[UUID.Zero].contentPanel.GetComponentInChildren<TMP_Text>().text = tabs[UUID.Zero].log;
+					}
 				}
 			}
 		}
@@ -223,15 +198,28 @@ public class Chat : MonoBehaviour
 
 	public void SwitchTab(UUID uuid)
     {
-        if (tabs.ContainsKey(uuid))
+        if (!tabs.ContainsKey(uuid))
         {
-			selectedChat = uuid;
-            log.text = tabs[uuid].log;
-        }
-		else
-		{
-			Debug.Log("Starting new IM");
 			StartIM(uuid);
+			return;
+        }
+
+		selectedChat = uuid;
+
+		// Iterate through all tabs to set the correct content panel active
+		foreach(var tab in tabs.Values)
+		{
+			bool isActive = tab.uuid == uuid;
+			if(tab.contentPanel != null)
+			{
+				tab.contentPanel.SetActive(isActive);
+				if(isActive)
+				{
+					// Update the main log text reference to point to the active panel's text
+					log = tab.contentPanel.GetComponentInChildren<TMP_Text>();
+					log.text = tab.log;
+				}
+			}
 		}
 	}
 

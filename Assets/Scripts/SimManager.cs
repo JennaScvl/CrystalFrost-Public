@@ -50,7 +50,7 @@ using UnityEngine.Animations;
 using Util;
 using Debug = UnityEngine.Debug;
 
-public class SimManager : MonoBehaviour
+public class SimManager : MonoBehaviour, IDisposable
 {
 	const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
 	const float RAD_TO_DEG = 57.295779513082320876798154814105f;
@@ -930,8 +930,24 @@ public class SimManager : MonoBehaviour
 
 		Color color = textureEntryFace.RGBA.ToUnity();
 
+		// Request the diffuse texture
 		Material newMaterial = ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr,
-			subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
+			subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright, TextureType.Diffuse);
+
+		// Attempt to request normal and specular maps, guessing the property names
+		// The actual property names on TextureEntryFace are unknown without documentation.
+		// Common patterns suggest properties like NormalMapID, SpecularMapID, etc.
+		// We will assume 'NormalMap' and 'SpecularMap' for now.
+		if (textureEntryFace.NormalMap != UUID.Zero)
+		{
+			ClientManager.assetManager.RequestTexture(textureEntryFace.NormalMap, rendr,
+				subMeshIndex, Color.white, 0f, false, TextureType.Normal);
+		}
+		if (textureEntryFace.SpecularMap != UUID.Zero)
+		{
+			ClientManager.assetManager.RequestTexture(textureEntryFace.SpecularMap, rendr,
+				subMeshIndex, Color.white, 0f, false, TextureType.Specular);
+		}
 
 
 		if (textureEntryFace.Fullbright) rendr.gameObject.layer = 7;
@@ -1442,4 +1458,88 @@ public class SimManager : MonoBehaviour
 			}
 		}
 	}
+
+    public void ClearRegion(ulong regionHandle)
+    {
+        _log.LogInformation($"Clearing region {regionHandle}");
+        List<uint> primsToRemove = new List<uint>();
+
+        // Find all prims in the specified region
+        foreach (var prim in scenePrims.Values)
+        {
+            if (prim.prim.RegionHandle == regionHandle)
+            {
+                primsToRemove.Add(prim.prim.LocalID);
+                if (prim.obj != null && prim.obj.transform != null && prim.obj.transform.root != null)
+                {
+                    Destroy(prim.obj.transform.root.gameObject);
+                }
+            }
+        }
+
+        // Remove them from the dictionaries
+        foreach (uint localID in primsToRemove)
+        {
+            if (scenePrims.TryRemove(localID, out var removedPrim))
+            {
+                scenePrimIndexUUID.TryRemove(removedPrim.uuid, out _);
+            }
+        }
+
+        // Remove the simulator itself
+        if (simulators.TryRemove(regionHandle, out var simContainer))
+        {
+            if (simContainer.transform != null)
+            {
+                Destroy(simContainer.transform.gameObject);
+            }
+        }
+        _log.LogInformation($"Cleared {primsToRemove.Count} prims from region {regionHandle}.");
+    }
+
+    public void Dispose()
+    {
+        _log.LogInformation("Disposing SimManager...");
+        // Clear all scene objects and caches
+        foreach (var prim in scenePrims.Values)
+        {
+            if (prim.obj != null && prim.obj.transform != null && prim.obj.transform.root != null)
+            {
+                // Destroy the root hierarchy object
+                Destroy(prim.obj.transform.root.gameObject);
+            }
+        }
+        scenePrims.Clear();
+        scenePrimIndexUUID.Clear();
+        orphanedPrims.Clear();
+
+        foreach (var sim in simulators.Values)
+        {
+            if (sim.transform != null)
+            {
+                Destroy(sim.transform.gameObject);
+            }
+        }
+        simulators.Clear();
+
+        // Clear all queues
+        objectsToRez.Clear();
+        meshRequests.Clear();
+
+        // Re-initialize non-readonly ConcurrentQueues by assignment
+        objectDataBlockUpdates = new ConcurrentQueue<ObjectDataBlockUpdateEventArgs>();
+        unTexturedPrims = new ConcurrentQueue<ScenePrimData>();
+        terseUpdates = new ConcurrentQueue<TerseObjectUpdateEventArgs>();
+        objectUpdates = new ConcurrentQueue<PrimEventArgs>();
+
+        // Clear readonly ConcurrentQueues by dequeuing until empty
+        while (_killObjectQueue.TryDequeue(out _)) { }
+        while (_loadedAnimationRequest.TryDequeue(out _)) { }
+        while (_avatarUpdates.TryDequeue(out _)) { }
+        while (_objectPropertiesUpdateEvents.TryDequeue(out _)) { }
+        while (_objectPropertiesEvents.TryDequeue(out _)) { }
+        while (_nameReplyEvents.TryDequeue(out _)) { }
+
+        _log.LogInformation("SimManager disposed.");
+    }
 }

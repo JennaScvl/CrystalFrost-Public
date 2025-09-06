@@ -796,14 +796,8 @@ public static class ScenePrimDataExtensions
 			Color color = textureEntryFace.RGBA.ToUnity();
 			Material clonemat;
 
-			if (color.a < 0.999f)
-			{
-				clonemat = new Material(textureEntryFace.Fullbright ? ResourceCache.alphaFullbrightMaterial : ResourceCache.alphaMaterial);
-			}
-			else
-			{
-				clonemat = new Material(textureEntryFace.Fullbright ? ResourceCache.opaqueFullbrightMaterial : ResourceCache.opaqueMaterial);
-			}
+			// Use the new PBR shader for all generated prims
+			clonemat = new Material(Shader.Find("CrystalFrost/PBR"));
 
 			clonemat.SetColor("_BaseColor", color);
 

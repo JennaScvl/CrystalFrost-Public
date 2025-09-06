@@ -173,7 +173,13 @@ public class Login : MonoBehaviour
 	{
 		if (ClientManager.IsMainThread)
 		{
-			Debug.Log($"GRIDEVENT: RegionCrossed: From {e.OldSimulator} to {e.NewSimulator}");
+			_log.LogInformation($"RegionCrossed: From {e.OldSimulator.Name} ({e.OldSimulator.Handle}) to {e.NewSimulator.Name} ({e.NewSimulator.Handle})");
+
+			// Clean up assets from the old region
+			if (ClientManager.simManager != null)
+			{
+				ClientManager.simManager.ClearRegion(e.OldSimulator.Handle);
+			}
 		}
 		else
 		{
@@ -334,6 +340,12 @@ public class Login : MonoBehaviour
 		system = EventSystem.current;
 		cameraControls.enabled = true;
 		//waterSystem.UseCausticEffect = true;
+
+		// Add the ClickToInteract component to this GameObject to enable world interaction
+		if (gameObject.GetComponent<ClickToInteract>() == null)
+		{
+			gameObject.AddComponent<ClickToInteract>();
+		}
 	}
 
 	public Transform sun;
@@ -485,58 +497,47 @@ public class Login : MonoBehaviour
 	{
 		_log.LoggingOut();
 		loggedInUI.SetActive(false);
+
 		yield return null;
-		ClientManager.client.Network.Logout();
-		//loginUI.SetActive(true);
+
+		// Gracefully disconnect from the network
+		if (ClientManager.client != null && ClientManager.client.Network.Connected)
+		{
+			ClientManager.client.Network.Logout();
+		}
+
 		ClientManager.active = false;
 
-		/*for(int i = 0; i < ClientManager.assetManager.textureDecodeThread.Length; i++)
-        {
-            ClientManager.assetManager.textureDecodeThread[i].Abort();
-		}*/
-		//ClientManager.assetManager._thread.Abort();
+		// Dispose managers to clean up state
+		if (ClientManager.assetManager != null)
+		{
+			ClientManager.assetManager.Dispose();
+			ClientManager.assetManager = new CrystalFrost.CFAssetManager(); // Re-initialize for next session
+		}
 
-		//ClientManager.assetManager.textureQueue.Clear();// = new System.Collections.Concurrent.ConcurrentQueue<CFAssetManager.TextureQueueData>();
-		//ClientManager.assetManager.concurrentMeshQueue.Clear();// = new System.Collections.Concurrent.ConcurrentQueue<CFAssetManager.MeshQueue>();
-		//ClientManager.assetManager.materialContainer.Clear();// = new Dictionary<UUID, CFAssetManager.MaterialContainer>();
-		//ClientManager.assetManager.meshCache.Clear();// = new Dictionary<UUID, SLMeshData>();
-		SimManager sim = gameObject.GetComponent<SimManager>();
-		//sim.scenePrims.Clear();// = new Dictionary<uint, SimManager.ScenePrimData>();
-		//sim.orphanedPrims.Clear();// = new Dictionary<uint, List<Primitive>>();
+		if (ClientManager.simManager != null)
+		{
+			ClientManager.simManager.Dispose();
+		}
 
+		// Add other manager disposals here if needed
+		// e.g., ClientManager.soundManager.Dispose();
 
-		//CFAssetManager.meshCache = new Dictionary<UUID, SLMeshData>();
-		//static Dictionary<UUID, Material> materials = new Dictionary<UUID, Material>();
-		ClientManager.assetManager.materialContainer.Clear();// = new Dictionary<UUID, Texture2D>();
-															 //static Dictionary<UUID, Mesh[]> meshes = new Dictionary<UUID, Mesh[]>();
-		ClientManager.assetManager.sounds.Clear();// = new Dictionary<UUID, AudioClip>();
-												  //static Dictionary<GameObject, Primitive> meshPrims = new Dictionary<GameObject, Primitive>();
-												  //static Dictionary<UUID, List<GameObject>> meshGOs = new Dictionary<UUID, List<GameObject>>();
-		ClientManager.assetManager.materials.Clear();// = new Dictionary<UUID, List<MeshRenderer>>();
-		ClientManager.assetManager.componentsDict.Clear();// = new Dictionary<UUID, int>();
-		ClientManager.assetManager.fullbrights.Clear();// = new List<MeshRenderer>();
-													   //CFAssetManager.materialContainer.Clear();// = new Dictionary<UUID, MaterialContainer>();
-													   //CFAssetManager.textureQueue = new ConcurrentQueue<TextureQueueData>();
-		ClientManager.simManager.scenePrims.Clear();
-		ClientManager.simManager = null;
-		ClientManager.assetManager = null;
+		// Clean up any remaining assets
 		Resources.UnloadUnusedAssets();
 
+		// Dump performance data if it was enabled
 		if (!Perf.Disabled)
 		{
-			// if Perf was enabled, write out the collected data.
 			var perfFile = System.IO.Path.Combine(
 				UnityEngine.Application.persistentDataPath,
 				System.DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") + ".perf.csv");
 			Perf.DumpStats(perfFile);
 		}
 
-#if UNITY_EDITOR
-		EditorApplication.ExitPlaymode();
-		UnityEditor.EditorApplication.isPlaying = false;
-#else
-        Application.Quit();
-#endif
+		// Return to the login screen
+		loginUI.SetActive(true);
+		consoleUI.SetActive(true); // Or manage console visibility as needed
 	}
 
 
