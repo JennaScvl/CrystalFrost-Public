@@ -13,8 +13,15 @@ namespace CrystalFrost.Config
 		//Todo: is better to cache path is grid specific to prevent conflict of same assetID
 		private readonly string cachePath = Path.Combine(Application.persistentDataPath, "assettexture");
 
+		/// <summary>
+		/// Gets or sets a value indicating whether texture caching is allowed.
+		/// </summary>
 		public bool isCachingAllowed { get; set; } = true;
 
+		/// <summary>
+		/// Gets the full path to the texture cache directory.
+		/// </summary>
+		/// <returns>The texture cache path.</returns>
 		public string getCachePath()
 		{
 			return cachePath;

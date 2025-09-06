@@ -2,6 +2,10 @@
 
 namespace CrystalFrost
 {
+    /// <summary>
+    /// A MonoBehaviour that hooks into Unity's lifecycle events and forwards them to the <see cref="IEngineBehaviorEvents"/> service.
+    /// This allows other parts of the application to subscribe to Unity's lifecycle events without needing to be a MonoBehaviour.
+    /// </summary>
     public class EngineBehavior : MonoBehaviour
     {
         private IEngineBehaviorEvents _events;

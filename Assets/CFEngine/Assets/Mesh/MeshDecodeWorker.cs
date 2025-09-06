@@ -7,11 +7,17 @@ using System.Threading.Tasks;
 
 namespace CrystalFrost.Assets.Mesh
 {
+	/// <summary>
+	/// Defines an interface for a background worker that decodes mesh assets.
+	/// </summary>
 	public interface IMeshDecodeWorker : IDisposable
 	{
 
 	}
 
+	/// <summary>
+	/// A background worker that decodes downloaded mesh assets.
+	/// </summary>
 	public class MeshDecodeWorker : BackgroundWorker, IMeshDecodeWorker
 	{
 		private readonly MeshConfig _meshConfig;
@@ -19,6 +25,15 @@ namespace CrystalFrost.Assets.Mesh
 		private readonly IDecodedMeshQueue _readyMeshQueue;
 		private readonly IMeshDecoder _meshDecoder;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="MeshDecodeWorker"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="runningIndicator">The provider for shutdown signals.</param>
+		/// <param name="downloadedMeshQueue">The queue for downloaded meshes.</param>
+		/// <param name="readyMeshQueue">The queue for decoded meshes.</param>
+		/// <param name="meshDecoder">The mesh decoder.</param>
+		/// <param name="meshConfig">The mesh configuration.</param>
 		public MeshDecodeWorker(
 			ILogger<MeshDecodeWorker> log,
 			IProvideShutdownSignal runningIndicator,

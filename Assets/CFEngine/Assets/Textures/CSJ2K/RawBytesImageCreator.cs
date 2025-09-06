@@ -4,12 +4,30 @@ using System;
 
 namespace CrystalFrost.Assets.Textures.CSJ2K
 {
+    /// <summary>
+    /// Represents an image as a raw byte array.
+    /// </summary>
     public class RawBytesImage : IImage
     {
+        /// <summary>
+        /// Gets the raw byte data of the image.
+        /// </summary>
         public byte[] Data { get; }
+        /// <summary>
+        /// Gets the height of the image.
+        /// </summary>
         public int Height { get; }
+        /// <summary>
+        /// Gets the width of the image.
+        /// </summary>
         public int Width { get; }    
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RawBytesImage"/> class.
+        /// </summary>
+        /// <param name="width">The width of the image.</param>
+        /// <param name="height">The height of the image.</param>
+        /// <param name="bytes">The raw byte data of the image.</param>
         public RawBytesImage(int width, int height, byte[] bytes)
         {
             Data = bytes;
@@ -17,6 +35,11 @@ namespace CrystalFrost.Assets.Textures.CSJ2K
             Height = height;
         }
 
+        /// <summary>
+        /// Casts the image to the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type to cast to.</typeparam>
+        /// <returns>The casted image.</returns>
         public T As<T>()
         {
             if (typeof(T) == typeof(RawBytesImage))

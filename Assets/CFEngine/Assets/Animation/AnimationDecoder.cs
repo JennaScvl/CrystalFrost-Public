@@ -3,20 +3,38 @@ using UnityEngine;
 
 namespace CrystalFrost.Assets.Animation
 {
+	/// <summary>
+	/// Defines an interface for decoding animation assets.
+	/// </summary>
 	public interface IAnimationDecoder
 	{
+		/// <summary>
+		/// Decodes the specified animation request.
+		/// </summary>
+		/// <param name="request">The animation request to decode.</param>
 		void Decode(AnimationRequest request);
 	}
 
+	/// <summary>
+	/// Decodes animation assets from their raw format into a structured format.
+	/// </summary>
 	public class AnimationDecoder : IAnimationDecoder
 	{
 		private readonly IDecodedAnimationQueue _readyAnimationQueue;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AnimationDecoder"/> class.
+		/// </summary>
+		/// <param name="readyAnimationQueue">The queue for decoded animations.</param>
 		public AnimationDecoder(IDecodedAnimationQueue readyAnimationQueue)
 		{
 			_readyAnimationQueue = readyAnimationQueue;
 		}
 		
+		/// <summary>
+		/// Decodes the specified animation request and enqueues it when ready.
+		/// </summary>
+		/// <param name="request">The animation request to decode.</param>
 		public void Decode(AnimationRequest request)
 		{
 			TranscodeFacetedAnimationAtDetailLevel(request);

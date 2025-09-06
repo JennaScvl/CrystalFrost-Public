@@ -12,8 +12,15 @@ namespace CrystalFrost.Config
 		//Todo: is better to cache path is grid specific to prevent conflict of same assetID
 		private readonly string cachePath = Path.Combine(Application.persistentDataPath, "assetAnimation");
 
+		/// <summary>
+		/// Gets or sets a value indicating whether animation caching is allowed.
+		/// </summary>
 		public bool isCachingAllowed { get; set; } = true;
 
+		/// <summary>
+		/// Gets the full path to the animation cache directory.
+		/// </summary>
+		/// <returns>The animation cache path.</returns>
 		public string GetCachePath()
 		{
 			return cachePath;

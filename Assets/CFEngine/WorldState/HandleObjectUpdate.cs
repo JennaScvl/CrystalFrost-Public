@@ -7,17 +7,29 @@ using UnityEngine;
 
 namespace CrystalFrost.Assets.CFEngine.WorldState
 {
+	/// <summary>
+	/// Defines an interface for handling object updates from the grid.
+	/// </summary>
 	public interface IHandleObjectUpdate
 	{
 
 	}
 
+	/// <summary>
+	/// Handles incoming object updates from the grid and updates the world state accordingly.
+	/// </summary>
 	public class HandleObjectUpdate : IHandleObjectUpdate, IDisposable
 	{
 		private readonly ILogger<HandleObjectUpdate> _log;
 		private readonly GridClient _client;
 		private readonly IWorld _world;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="HandleObjectUpdate"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="client">The grid client.</param>
+		/// <param name="world">The world state.</param>
 		public HandleObjectUpdate(
 			ILogger<HandleObjectUpdate> log,
 			GridClient client,

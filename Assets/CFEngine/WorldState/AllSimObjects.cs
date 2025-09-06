@@ -35,6 +35,11 @@ namespace CrystalFrost.WorldState
 		private readonly ILogger<AllSimObjects> _log;
 		private readonly INewSimObjectQueue _newSimObjectQueue;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AllSimObjects"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="newSimObjectQueue">The queue for new simulation objects.</param>
 		public AllSimObjects(ILogger<AllSimObjects> log,
 			INewSimObjectQueue newSimObjectQueue)
 		{
