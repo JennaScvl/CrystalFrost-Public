@@ -914,6 +914,7 @@ public static class ScenePrimDataExtensions
 			av.myAvatar.parent = spd.meshHolder.transform.root;
 			av.myAvatar.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 			av.rotation = prim.Rotation.ToUnity();
+			spd.meshHolder.transform.root.gameObject.AddComponent<PlayerMovementController>();
 		}
 
 		if (spd.nameTag == null)

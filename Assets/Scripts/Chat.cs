@@ -42,7 +42,7 @@ public class Chat : MonoBehaviour
         public GameObject tabButton;
     }
 
-	
+
     public class ChatEvent
     {
         public UUID uuid;
@@ -150,7 +150,7 @@ public class Chat : MonoBehaviour
 					rect.anchoredPosition = anchoredPos;
 
 					//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
-					//rect.localPosition = rect.anchoredPosition; 
+					//rect.localPosition = rect.anchoredPosition;
 					//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
 					//b.transform.localScale = nearbyButton.transform.localScale;
 					//b.transform.localScale = Vector3.one;
@@ -194,7 +194,7 @@ public class Chat : MonoBehaviour
 		rect.anchoredPosition = anchoredPos;
 
 		//rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, rect.anchoredPosition.y - 7.5f);
-		//rect.localPosition = rect.anchoredPosition; 
+		//rect.localPosition = rect.anchoredPosition;
 		//b.transform.localPosition = nearbyButton.transform.localPosition + new Vector3(0f,-7.5f,0f);
 		//b.transform.localScale = nearbyButton.transform.localScale;
 		//b.transform.localScale = Vector3.one;
