@@ -20,6 +20,13 @@ namespace CrystalFrost.Lib
         private readonly int _targetConcurrency = 1;
         private readonly SemaphoreSlim semaphore = new(1, 1);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BackgroundWorker"/> class.
+        /// </summary>
+        /// <param name="name">The name of the worker, used for logging.</param>
+        /// <param name="targetConcurrency">The desired number of concurrent tasks.</param>
+        /// <param name="log">The logger for recording messages.</param>
+        /// <param name="runningIndicator">The provider for shutdown signals.</param>
         protected BackgroundWorker(
             string name,
 			int targetConcurrency,
@@ -33,6 +40,9 @@ namespace CrystalFrost.Lib
 			_targetConcurrency = targetConcurrency == 0 ? Math.Max(Environment.ProcessorCount / 2, 1) : targetConcurrency;
         }
 
+        /// <summary>
+        /// Releases all resources used by the <see cref="BackgroundWorker"/> object.
+        /// </summary>
         public virtual void Dispose()
         {
             _runningIndicator.OnShutdown -= ShutdownSignaled;

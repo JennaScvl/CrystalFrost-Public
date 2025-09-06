@@ -17,11 +17,18 @@ namespace CrystalFrost.Client.Credentials
     {
         private readonly ILogger<WindowsCredentialsStore> _log;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WindowsCredentialsStore"/> class.
+        /// </summary>
+        /// <param name="log">The logger for recording messages.</param>
         public WindowsCredentialsStore(ILogger<WindowsCredentialsStore> log)
         {
             _log = log;
         }
 
+        /// <summary>
+        /// Loads and decrypts login credentials from a file using the Windows Data Protection API (DPAPI).
+        /// </summary>
         public void Load()
         {
             _log.LoadingCredentials();
@@ -54,6 +61,9 @@ namespace CrystalFrost.Client.Credentials
             }
         }
 
+        /// <summary>
+        /// Encrypts and saves the login credentials to a file using the Windows Data Protection API (DPAPI).
+        /// </summary>
         public void Save()
         {
             _log.SavingCredentials();

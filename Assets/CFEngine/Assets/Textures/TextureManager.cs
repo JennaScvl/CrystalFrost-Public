@@ -7,6 +7,9 @@ using System.Collections.Generic;
 
 namespace CrystalFrost.Assets
 {
+	/// <summary>
+	/// Defines an interface for a manager that handles texture assets.
+	/// </summary>
 	public interface ITextureManager
 	{
 		/// <summary>
@@ -15,9 +18,15 @@ namespace CrystalFrost.Assets
 		/// </summary>
 		/// <param name="uuid"></param>
 		void RequestImage(UUID uuid);
+		/// <summary>
+		/// Gets the queue of decoded textures that are ready for use.
+		/// </summary>
 		IReadyTextureQueue ReadyTextures { get; }
 	}
 
+	/// <summary>
+	/// Manages the entire lifecycle of texture assets, from requesting and downloading to decoding and caching.
+	/// </summary>
 	public class TextureManager : ITextureManager, IDisposable
 	{
 		private readonly ILogger<TextureManager> _log;
@@ -32,6 +41,15 @@ namespace CrystalFrost.Assets
 
 		private readonly List<UUID> _pending = new();
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TextureManager"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="readyTextureQueue">The queue for ready textures.</param>
+		/// <param name="textureRequests">The queue for texture requests.</param>
+		/// <param name="decodeWorker">The worker for decoding textures.</param>
+		/// <param name="downloadWorker">The worker for downloading textures.</param>
+		/// <param name="textureCache">The worker for caching textures.</param>
 		public TextureManager(
 			ILogger<TextureManager> log,
 			IReadyTextureQueue readyTextureQueue,

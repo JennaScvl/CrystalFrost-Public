@@ -3,10 +3,16 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// An editor window for bundling selected GameObjects into a prefab, including their meshes, materials, and textures.
+/// </summary>
 public class ObjectBundler : EditorWindow
 {
 	string folderPath = "Assets/SavedAssets";
 
+	/// <summary>
+	/// Shows the Object Bundler window.
+	/// </summary>
 	[MenuItem("Tools/Object Bundler")]
 	public static void ShowWindow()
 	{

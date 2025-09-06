@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace CrystalFrost.Assets.Textures.AVLJ2K
 {
+	/// <summary>
+	/// A texture decoder that uses the AVLJ2K library to decode JPEG2000 textures.
+	/// </summary>
 	public class AVLJ2KTextureDecoder : ITextureDecoder
 	{
 		[DllImport("avl_j2k")]
@@ -26,6 +29,11 @@ namespace CrystalFrost.Assets.Textures.AVLJ2K
 		private readonly ILogger<AVLJ2KTextureDecoder> _log;
 		private readonly ITgaReader _tgaReader;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AVLJ2KTextureDecoder"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="tgaReader">The TGA reader for converting decoded textures.</param>
 		public AVLJ2KTextureDecoder(
 			ILogger<AVLJ2KTextureDecoder> log,
 			ITgaReader tgaReader)
@@ -34,6 +42,11 @@ namespace CrystalFrost.Assets.Textures.AVLJ2K
 			_tgaReader = tgaReader;
 		}
 
+		/// <summary>
+		/// Decodes a JPEG2000 texture asset.
+		/// </summary>
+		/// <param name="texture">The texture asset to decode.</param>
+		/// <returns>A task that represents the asynchronous decode operation. The task result contains the decoded texture.</returns>
 		public Task<DecodedTexture> Decode(AssetTexture texture)
 		{
 			return Perf.Measure("AVLJ2KTextureDecoder.Decode",

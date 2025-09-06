@@ -5,21 +5,36 @@ using System;
 
 namespace CrystalFrost.ObjectPooling
 {
-    // Enum for object pool names 
+    /// <summary>
+    /// Defines the names of available object pools.
+    /// </summary>
     public enum ObjectPoolName
     {
         Rigidbody
         // add more object pool names here
     }
 
-    // Define an interface for object pooling service
+    /// <summary>
+    /// Defines the interface for the object pooling service.
+    /// </summary>
     public interface IObjectPoolingService
     {
+        /// <summary>
+        /// Initializes the object pooling service.
+        /// </summary>
         public void Initialize();
+        /// <summary>
+        /// Acquires an object from the specified pool.
+        /// </summary>
+        /// <param name="poolName">The name of the pool to acquire from.</param>
+        /// <param name="deallocationLogic">The logic for deallocating the object.</param>
+        /// <returns>A GameObject from the pool.</returns>
         public GameObject AcquireObject(ObjectPoolName poolName, IPoolObjectDeallocationLogic deallocationLogic);
     }
 
-    // Implementation of the object pooling service
+    /// <summary>
+    /// Implements a service for managing multiple object pools.
+    /// </summary>
     public class ObjectPoolingService : IObjectPoolingService
     {
         // Create a dictionary to hold object pools for different object types.
@@ -37,7 +52,9 @@ namespace CrystalFrost.ObjectPooling
         // Interval (in seconds) for updating object pools in the worker thread
         private float poolObjectManagerThreadInterval = 5.0f;
 
-        // Initialize default object pools
+        /// <summary>
+        /// Initializes the object pooling service and creates default pools.
+        /// </summary>
         public void Initialize()
         {
             this.globalObjectPool = new GameObject();
@@ -79,7 +96,12 @@ namespace CrystalFrost.ObjectPooling
             }
         }
 
-        // Acquire an object from a specific object pool with deallocation logic
+        /// <summary>
+        /// Acquires an object from the specified pool.
+        /// </summary>
+        /// <param name="poolName">The name of the pool to acquire from.</param>
+        /// <param name="deallocationLogic">The logic for deallocating the object.</param>
+        /// <returns>A GameObject from the pool.</returns>
         public GameObject AcquireObject(ObjectPoolName poolName, IPoolObjectDeallocationLogic deallocationLogic)
         {
             if (objectPools.ContainsKey(poolName))
@@ -92,7 +114,11 @@ namespace CrystalFrost.ObjectPooling
             }
         }
 
-        // Deallocate an object by its pool name and GameObject reference
+        /// <summary>
+        /// Deallocates an object and returns it to the specified pool.
+        /// </summary>
+        /// <param name="poolName">The name of the pool to return the object to.</param>
+        /// <param name="gameObject">The GameObject to deallocate.</param>
         public void DeallocateObject(ObjectPoolName poolName, GameObject gameObject)
         {
             if (objectPools.ContainsKey(poolName))

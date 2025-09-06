@@ -5,7 +5,9 @@ using OpenMetaverse;
 
 namespace CrystalFrost.Assets.Animation
 {
-
+	/// <summary>
+	/// Defines the possible hand poses for an animation.
+	/// </summary>
 	public enum EHandPose
 	{
 		HandPoseSpread = 0,
@@ -25,9 +27,16 @@ namespace CrystalFrost.Assets.Animation
 		NumHandPoses
 	}
 
-
+	/// <summary>
+	/// Provides extension methods for the <see cref="EHandPose"/> enum.
+	/// </summary>
 	public static class EHandPoseExtensions
 	{
+		/// <summary>
+		/// Converts a uint to an <see cref="EHandPose"/>.
+		/// </summary>
+		/// <param name="value">The uint value to convert.</param>
+		/// <returns>The converted <see cref="EHandPose"/>.</returns>
 		public static EHandPose FromUInt(uint value)
 		{
 			if (value >= (uint)EHandPose.NumHandPoses)
@@ -39,6 +48,9 @@ namespace CrystalFrost.Assets.Animation
 		}
 	}
 
+	/// <summary>
+	/// Represents the header of an animation.
+	/// </summary>
 	public struct AnimationHeader
 	{
 		public ushort Version { get; set; }
@@ -60,6 +72,9 @@ namespace CrystalFrost.Assets.Animation
 		}
 	}
 
+	/// <summary>
+	/// Represents a keyframe in an animation.
+	/// </summary>
 	public struct AnimationKeyframe
 	{
 		public ushort Time { get; set; }
@@ -81,6 +96,9 @@ namespace CrystalFrost.Assets.Animation
 		}
 	}
 
+	/// <summary>
+	/// Represents the animation data for a single joint.
+	/// </summary>
 	public struct AnimationJointData
 	{
 		public string JointName { get; set; }
@@ -95,6 +113,9 @@ namespace CrystalFrost.Assets.Animation
 		}
 	}
 
+	/// <summary>
+	/// Represents a constraint in an animation.
+	/// </summary>
 	public struct AnimationConstraint
 	{
 		public byte ChainLength { get; set; }  // U8
@@ -115,6 +136,9 @@ namespace CrystalFrost.Assets.Animation
 		}
 	}
 
+	/// <summary>
+	/// Represents a decoded animation, including its header, joint data, and constraints.
+	/// </summary>
 	public class DecodedAnimation
 	{
 		public UUID animationId;

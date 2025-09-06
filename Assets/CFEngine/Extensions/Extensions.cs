@@ -9,43 +9,86 @@ using UnityColor4 = UnityEngine.Color;
 
 namespace CrystalFrost.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for converting between OpenMetaverse and Unity data types.
+    /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Converts an OpenMetaverse Vector3 to a Unity Vector3.
+        /// </summary>
+        /// <param name="v3">The OpenMetaverse Vector3 to convert.</param>
+        /// <returns>The converted Unity Vector3.</returns>
         public static UnityVector3 ToUnity(this OMVVector3 v3)
         {
             return new UnityVector3(v3.X, v3.Z, v3.Y);
         }
 
+        /// <summary>
+        /// Converts a Unity Vector3 to an OpenMetaverse Vector3.
+        /// </summary>
+        /// <param name="v3">The Unity Vector3 to convert.</param>
+        /// <returns>The converted OpenMetaverse Vector3.</returns>
         public static OMVVector3 FromUnity(this UnityVector3 v3)
         {
             return new OMVVector3(v3.x, v3.z, v3.y);
         }
 
+        /// <summary>
+        /// Converts an OpenMetaverse Vector3 to a Unity Vector3.
+        /// </summary>
+        /// <param name="v3">The OpenMetaverse Vector3 to convert.</param>
+        /// <returns>The converted Unity Vector3.</returns>
         public static UnityVector3 ToVector3(this OMVVector3 v3)
         {
             return v3.ToUnity();
         }
 
+        /// <summary>
+        /// Converts an OpenMetaverse Vector2 to a Unity Vector2.
+        /// </summary>
+        /// <param name="v2">The OpenMetaverse Vector2 to convert.</param>
+        /// <returns>The converted Unity Vector2.</returns>
         public static UnityVector2 ToUnity(this OMVVector2 v2)
         {
             return new UnityVector3(v2.X, 1f - v2.Y); ;
         }
 
+        /// <summary>
+        /// Converts an OpenMetaverse Vector2 to a Unity Vector2.
+        /// </summary>
+        /// <param name="v2">The OpenMetaverse Vector2 to convert.</param>
+        /// <returns>The converted Unity Vector2.</returns>
         public static UnityVector2 ToVector2(this OMVVector2 v2)
         {
             return v2.ToUnity();
         }
 
+        /// <summary>
+        /// Converts an OpenMetaverse Quaternion to a Unity Quaternion.
+        /// </summary>
+        /// <param name="q1">The OpenMetaverse Quaternion to convert.</param>
+        /// <returns>The converted Unity Quaternion.</returns>
         public static UnityQuaternion ToUnity(this OMVQuaternion q1)
         {
             return new UnityQuaternion(-q1.X, -q1.Z, -q1.Y, q1.W);
         }
 
+        /// <summary>
+        /// Converts an OpenMetaverse Color4 to a Unity Color.
+        /// </summary>
+        /// <param name="c1">The OpenMetaverse Color4 to convert.</param>
+        /// <returns>The converted Unity Color.</returns>
         public static UnityColor4 ToUnity(this OMVColor4 c1)
         {
             return new UnityColor4(c1.R, c1.G, c1.B, c1.A);
         }
 
+        /// <summary>
+        /// Converts a float array to a Unity Matrix4x4.
+        /// </summary>
+        /// <param name="floatArray">The float array to convert.</param>
+        /// <returns>The converted Unity Matrix4x4.</returns>
 		public static UnityEngine.Matrix4x4 ToMatrix4x4(this float[] floatArray)
 		{
 			if (floatArray == null || floatArray.Length != 16)

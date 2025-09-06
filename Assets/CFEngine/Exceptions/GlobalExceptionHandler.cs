@@ -3,20 +3,36 @@ using System;
 
 namespace CrystalFrost.Exceptions
 {
+    /// <summary>
+    /// Defines an interface for a global exception handler.
+    /// </summary>
     public interface IGlobalExceptionHandler
     {
+        /// <summary>
+        /// Initializes the exception handler.
+        /// </summary>
         void Initialize();
     }
 
+    /// <summary>
+    /// Implements a global exception handler that logs unhandled and first-chance exceptions.
+    /// </summary>
     public class GlobalExceptionHandler : IGlobalExceptionHandler
     {
         private readonly ILogger<GlobalExceptionHandler> _log;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GlobalExceptionHandler"/> class.
+        /// </summary>
+        /// <param name="log">The logger for recording messages.</param>
         public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> log)
         {
             _log = log;
         }
 
+        /// <summary>
+        /// Initializes the exception handler by subscribing to process-wide exception events.
+        /// </summary>
         public void Initialize()
         {
             AppDomain.CurrentDomain.FirstChanceException += FirstChanceException;

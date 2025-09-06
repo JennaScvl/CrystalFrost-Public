@@ -18,9 +18,14 @@
 		/// </summary>
         public bool LimitToCurrentRegion { get; set;} = false;
 
+		/// <summary>
+		/// Gets or sets the maximum number of queue items to process per update.
+		/// </summary>
         public uint LimitQueueItemsPerUpdateTo { get; set; } = 1;
 
-		// Time interval to wait before executing UpdateCamera method
+		/// <summary>
+		/// Gets or sets the time interval to wait before executing the UpdateCamera method.
+		/// </summary>
 		public float updateCameraInterval { get; set; } = 0.1f;
 	}
 }

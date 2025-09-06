@@ -7,20 +7,38 @@ using CrystalFrost.Extensions;
 
 namespace CrystalFrost.Assets.Mesh
 {
+    /// <summary>
+    /// Defines an interface for decoding mesh assets.
+    /// </summary>
     public interface IMeshDecoder
     {
+        /// <summary>
+        /// Decodes the specified mesh request.
+        /// </summary>
+        /// <param name="request">The mesh request to decode.</param>
         void Decode(MeshRequest request);
     }
 
+    /// <summary>
+    /// Decodes mesh assets from their raw format into a format usable by Unity.
+    /// </summary>
     public class MeshDecoder : IMeshDecoder
     {
         private readonly IDecodedMeshQueue _readyMeshQueue;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MeshDecoder"/> class.
+        /// </summary>
+        /// <param name="readyMeshQueue">The queue for decoded meshes.</param>
         public MeshDecoder(IDecodedMeshQueue readyMeshQueue)
         {
             _readyMeshQueue = readyMeshQueue;
         }
 
+        /// <summary>
+        /// Decodes the specified mesh request and enqueues it when ready.
+        /// </summary>
+        /// <param name="request">The mesh request to decode.</param>
         public void Decode(MeshRequest request)
         {
 			/*

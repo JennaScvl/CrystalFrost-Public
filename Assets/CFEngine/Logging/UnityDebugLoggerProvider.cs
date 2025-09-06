@@ -21,6 +21,10 @@ namespace CrystalFrost.Logging
         private readonly ConcurrentDictionary<string, UnityDebugLogger> _loggers =
             new(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UnityDebugLoggerProvider"/> class.
+        /// </summary>
+        /// <param name="configuration">The configuration to use for the loggers.</param>
         public UnityDebugLoggerProvider(IConfiguration configuration)
         {
             // look for a subsection in the logging section we were provided.

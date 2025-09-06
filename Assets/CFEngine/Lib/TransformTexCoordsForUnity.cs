@@ -5,11 +5,24 @@ using System.Collections.Generic;
 
 namespace CrystalFrost.Lib
 {
+    /// <summary>
+    /// Defines a method for transforming texture coordinates of vertices.
+    /// </summary>
     public interface ITransformTexCoords
     {
+        /// <summary>
+        /// Transforms the texture coordinates of a list of vertices based on the given texture entry face and primitive scale.
+        /// </summary>
+        /// <param name="vertices">The list of vertices to transform.</param>
+        /// <param name="center">The center of the primitive.</param>
+        /// <param name="teFace">The texture entry face containing transformation data.</param>
+        /// <param name="primScale">The scale of the primitive.</param>
         void TransformTexCoords(List<Vertex> vertices, Vector3 center, Primitive.TextureEntryFace teFace, Vector3 primScale);
     }
 
+    /// <summary>
+    /// Implements texture coordinate transformation for Unity, accounting for differences in texture rotation.
+    /// </summary>
     public class TransformTexCoordsForUnity :ITransformTexCoords
     {
 

@@ -10,7 +10,13 @@ using CrystalFrost.Config;
 
 namespace CrystalFrost.Assets.Animation
 {
+	/// <summary>
+	/// Defines an interface for a background worker that downloads animation assets.
+	/// </summary>
 	public interface IAnimationDownloadWorker : IDisposable { }
+	/// <summary>
+	/// A background worker that downloads animation assets from the grid.
+	/// </summary>
 	public class AnimationDownloadWorker : BackgroundWorker, IAnimationDownloadWorker
 	{
 		private readonly AnimationConfig _AnimationConfig;
@@ -19,6 +25,15 @@ namespace CrystalFrost.Assets.Animation
 		private readonly IAnimationDownloadRequestQueue _requests;
 		private readonly List<UUID> _pendingDownloads = new();
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AnimationDownloadWorker"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="runningIndicator">The provider for shutdown signals.</param>
+		/// <param name="client">The grid client.</param>
+		/// <param name="downloadedAnimationQueue">The queue for downloaded animations to be cached.</param>
+		/// <param name="downloadRequestQueue">The queue for animation download requests.</param>
+		/// <param name="AnimationConfig">The animation configuration.</param>
 		public AnimationDownloadWorker(
 			ILogger<AnimationDownloadWorker> log,
 			IProvideShutdownSignal runningIndicator,
