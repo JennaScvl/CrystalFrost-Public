@@ -24,9 +24,7 @@ using CrystalFrost.Timing;
 using Microsoft.Extensions.Logging;
 using Temp;
 using static System.Net.WebRequestMethods;
-//using UnityEditor.PackageManager;
-//using OpenMetaverse.ImportExport.Collada14;
-
+using TMPro;
 
 #if USE_KWS
 using KWS;
@@ -340,12 +338,6 @@ public class Login : MonoBehaviour
 		system = EventSystem.current;
 		cameraControls.enabled = true;
 		//waterSystem.UseCausticEffect = true;
-
-		// Add the ClickToInteract component to this GameObject to enable world interaction
-		if (gameObject.GetComponent<ClickToInteract>() == null)
-		{
-			gameObject.AddComponent<ClickToInteract>();
-		}
 	}
 
 	public Transform sun;
@@ -446,6 +438,13 @@ public class Login : MonoBehaviour
 				ClientManager.active = true;
 			});
 			ClientManager.client.Estate.RequestInfo();
+
+			// Re-initialize the SimManager for the new session
+			if (ClientManager.simManager != null)
+			{
+				(ClientManager.simManager as SimManager).Initialize();
+			}
+
 			Simulator sim = ClientManager.client.Network.CurrentSim;
 
 			//ClientManager.simManager.thissim = sim.Handle;
@@ -472,7 +471,7 @@ public class Login : MonoBehaviour
 			_currentCredential.LastUsed = System.DateTime.UtcNow;
 			_credentials.Save();
 			gameObject.GetComponent<ChatWindowUI>().PopulateContacts();
-
+			CreateInventoryWindow();
 		}
 		else
 		{
@@ -489,8 +488,10 @@ public class Login : MonoBehaviour
 	public void LogOut()
 	{
 		StartCoroutine(_LogOut());
-		ClientManager.currentOutfitFolder.Dispose();
-		//Destroy(ClientManager.client.);
+		if(ClientManager.currentOutfitFolder != null)
+		{
+			ClientManager.currentOutfitFolder.Dispose();
+		}
 	}
 
 	IEnumerator _LogOut()
@@ -517,7 +518,7 @@ public class Login : MonoBehaviour
 
 		if (ClientManager.simManager != null)
 		{
-			ClientManager.simManager.Dispose();
+			(ClientManager.simManager as SimManager).Dispose();
 		}
 
 		// Add other manager disposals here if needed
@@ -545,4 +546,128 @@ public class Login : MonoBehaviour
 
 	// Update is called once per frame
 
+	private void CreateInventoryWindow()
+    {
+        // 1. Create Canvas
+        GameObject canvasGO = new GameObject("InventoryCanvas");
+        Canvas canvas = canvasGO.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+        canvasGO.AddComponent<CanvasScaler>();
+        canvasGO.AddComponent<GraphicRaycaster>();
+
+        // 2. Create Main Panel
+        GameObject panelGO = CreateUIPrefab("InventoryPanel", canvasGO.transform);
+        panelGO.transform.SetParent(canvasGO.transform, false);
+		panelGO.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        panelGO.AddComponent<DraggableWindow>();
+        InventoryWindowUI invUI = panelGO.AddComponent<InventoryWindowUI>();
+
+        // 3. Create Scroll View
+        GameObject scrollViewGO = CreateUIPrefab("ScrollView", panelGO.transform);
+        ScrollRect scrollRect = scrollViewGO.AddComponent<ScrollRect>();
+		scrollViewGO.GetComponent<RectTransform>().sizeDelta = new Vector2(380, 480);
+
+
+        // 4. Create Content Root
+        GameObject contentRootGO = CreateUIPrefab("ContentRoot", scrollViewGO.transform);
+        VerticalLayoutGroup layoutGroup = contentRootGO.AddComponent<VerticalLayoutGroup>();
+		layoutGroup.childControlWidth = true;
+		layoutGroup.childControlHeight = true;
+		layoutGroup.childForceExpandWidth = true;
+		layoutGroup.childForceExpandHeight = false;
+        scrollRect.content = contentRootGO.GetComponent<RectTransform>();
+
+        // 5. Create Context Menu
+        ContextMenuUI contextMenu = CreateContextMenu(canvasGO.transform);
+
+        // 6. Create Prefabs Programmatically
+        invUI.treeNodePrefab = CreateTreeNodePrefab();
+        invUI.treeNodePrefab.SetActive(false);
+        contextMenu.buttonPrefab = CreateContextMenuButtonPrefab();
+        contextMenu.buttonPrefab.SetActive(false);
+
+        // 7. Assign References to InventoryWindowUI
+        invUI.contentRoot = contentRootGO.transform;
+        invUI.contextMenu = contextMenu;
+    }
+
+    private GameObject CreateUIPrefab(string name, Transform parent)
+    {
+        GameObject go = new GameObject(name);
+        go.transform.SetParent(parent, false);
+        go.AddComponent<RectTransform>();
+        return go;
+    }
+
+    private GameObject CreateTreeNodePrefab()
+    {
+        GameObject node = CreateUIPrefab("TreeNodePrefab", null);
+        node.AddComponent<Image>().color = new Color(0.1f, 0.1f, 0.1f, 0.5f);
+        HorizontalLayoutGroup layout = node.AddComponent<HorizontalLayoutGroup>();
+		layout.padding = new RectOffset(5, 5, 2, 2);
+		layout.childAlignment = TextAnchor.MiddleLeft;
+
+        LayoutElement layoutElement = node.AddComponent<LayoutElement>();
+        layoutElement.minHeight = 20;
+
+        GameObject indent = CreateUIPrefab("Indent", node.transform);
+        indent.AddComponent<LayoutElement>().flexibleWidth = 0; // This will be set per-node
+
+        GameObject expandButton = CreateUIPrefab("ExpandButton", node.transform);
+        expandButton.AddComponent<Button>();
+        expandButton.AddComponent<Image>().color = Color.white;
+		expandButton.GetComponent<RectTransform>().sizeDelta = new Vector2(16, 16);
+
+        GameObject icon = CreateUIPrefab("Icon", node.transform);
+        icon.AddComponent<Image>().color = Color.cyan;
+		icon.GetComponent<RectTransform>().sizeDelta = new Vector2(16, 16);
+
+        GameObject text = CreateUIPrefab("Text", node.transform);
+        TMP_Text tmpText = text.AddComponent<TMP_Text>();
+        tmpText.text = "Item Name";
+        tmpText.fontSize = 14;
+        tmpText.color = Color.white;
+		text.AddComponent<LayoutElement>().flexibleWidth = 1;
+
+        TreeNodeUI treeNodeUI = node.AddComponent<TreeNodeUI>();
+        treeNodeUI.indentElement = indent.GetComponent<LayoutElement>();
+        treeNodeUI.expandButton = expandButton.GetComponent<Button>();
+        treeNodeUI.itemIcon = icon.GetComponent<Image>();
+        treeNodeUI.itemNameText = tmpText;
+
+        return node;
+    }
+
+    private ContextMenuUI CreateContextMenu(Transform parent)
+    {
+        GameObject menuGO = CreateUIPrefab("ContextMenu", parent);
+		menuGO.transform.SetParent(parent, false);
+        Image img = menuGO.AddComponent<Image>();
+        img.color = new Color(0.1f, 0.1f, 0.1f, 0.9f);
+		menuGO.GetComponent<RectTransform>().sizeDelta = new Vector2(150, 200);
+
+        GameObject buttonParent = CreateUIPrefab("ButtonParent", menuGO.transform);
+        VerticalLayoutGroup layout = buttonParent.AddComponent<VerticalLayoutGroup>();
+		layout.childControlWidth = true;
+		layout.childForceExpandHeight = false;
+
+        ContextMenuUI contextMenuUI = menuGO.AddComponent<ContextMenuUI>();
+        contextMenuUI.buttonParent = buttonParent.transform;
+        return contextMenuUI;
+    }
+
+	private GameObject CreateContextMenuButtonPrefab()
+	{
+		GameObject buttonGO = CreateUIPrefab("ContextMenuButtonPrefab", null);
+		buttonGO.AddComponent<Image>().color = new Color(0.3f, 0.3f, 0.3f, 1f);
+		buttonGO.AddComponent<Button>();
+		buttonGO.AddComponent<LayoutElement>().minHeight = 22;
+
+		GameObject textGO = CreateUIPrefab("Text", buttonGO.transform);
+		TMP_Text text = textGO.AddComponent<TMP_Text>();
+		text.text = "Action";
+		text.color = Color.white;
+		text.alignment = TextAlignmentOptions.Center;
+		return buttonGO;
+	}
 }

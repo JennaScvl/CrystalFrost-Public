@@ -188,6 +188,11 @@ public class SimManager : MonoBehaviour, IDisposable
 
 	private void Start()
 	{
+		Initialize();
+	}
+
+	public void Initialize()
+	{
 		client = ClientManager.client;
 
 		avatar = gameObject.GetComponent<Avatar>();
@@ -930,24 +935,8 @@ public class SimManager : MonoBehaviour, IDisposable
 
 		Color color = textureEntryFace.RGBA.ToUnity();
 
-		// Request the diffuse texture
 		Material newMaterial = ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr,
-			subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright, TextureType.Diffuse);
-
-		// Attempt to request normal and specular maps, guessing the property names
-		// The actual property names on TextureEntryFace are unknown without documentation.
-		// Common patterns suggest properties like NormalMapID, SpecularMapID, etc.
-		// We will assume 'NormalMap' and 'SpecularMap' for now.
-		if (textureEntryFace.NormalMap != UUID.Zero)
-		{
-			ClientManager.assetManager.RequestTexture(textureEntryFace.NormalMap, rendr,
-				subMeshIndex, Color.white, 0f, false, TextureType.Normal);
-		}
-		if (textureEntryFace.SpecularMap != UUID.Zero)
-		{
-			ClientManager.assetManager.RequestTexture(textureEntryFace.SpecularMap, rendr,
-				subMeshIndex, Color.white, 0f, false, TextureType.Specular);
-		}
+			subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
 
 
 		if (textureEntryFace.Fullbright) rendr.gameObject.layer = 7;
@@ -1464,7 +1453,6 @@ public class SimManager : MonoBehaviour, IDisposable
         _log.LogInformation($"Clearing region {regionHandle}");
         List<uint> primsToRemove = new List<uint>();
 
-        // Find all prims in the specified region
         foreach (var prim in scenePrims.Values)
         {
             if (prim.prim.RegionHandle == regionHandle)
@@ -1477,7 +1465,6 @@ public class SimManager : MonoBehaviour, IDisposable
             }
         }
 
-        // Remove them from the dictionaries
         foreach (uint localID in primsToRemove)
         {
             if (scenePrims.TryRemove(localID, out var removedPrim))
@@ -1486,7 +1473,6 @@ public class SimManager : MonoBehaviour, IDisposable
             }
         }
 
-        // Remove the simulator itself
         if (simulators.TryRemove(regionHandle, out var simContainer))
         {
             if (simContainer.transform != null)
@@ -1500,12 +1486,10 @@ public class SimManager : MonoBehaviour, IDisposable
     public void Dispose()
     {
         _log.LogInformation("Disposing SimManager...");
-        // Clear all scene objects and caches
         foreach (var prim in scenePrims.Values)
         {
             if (prim.obj != null && prim.obj.transform != null && prim.obj.transform.root != null)
             {
-                // Destroy the root hierarchy object
                 Destroy(prim.obj.transform.root.gameObject);
             }
         }
@@ -1522,17 +1506,14 @@ public class SimManager : MonoBehaviour, IDisposable
         }
         simulators.Clear();
 
-        // Clear all queues
         objectsToRez.Clear();
         meshRequests.Clear();
 
-        // Re-initialize non-readonly ConcurrentQueues by assignment
         objectDataBlockUpdates = new ConcurrentQueue<ObjectDataBlockUpdateEventArgs>();
         unTexturedPrims = new ConcurrentQueue<ScenePrimData>();
         terseUpdates = new ConcurrentQueue<TerseObjectUpdateEventArgs>();
         objectUpdates = new ConcurrentQueue<PrimEventArgs>();
 
-        // Clear readonly ConcurrentQueues by dequeuing until empty
         while (_killObjectQueue.TryDequeue(out _)) { }
         while (_loadedAnimationRequest.TryDequeue(out _)) { }
         while (_avatarUpdates.TryDequeue(out _)) { }

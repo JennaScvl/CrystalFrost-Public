@@ -137,13 +137,20 @@ public class MeshObjectManager : MonoBehaviour
 		DebugStatsManager.AddStateUpdate(DebugStatsType.DecodedMeshProcess, item.AssetMesh.AssetID.ToString());
 
 		var mesh = new SLMeshData();
+		/*
+#if RenderHighestDetail
+		mesh.meshHighest = item.DecodedMesh.meshData.ToUnityMeshArray();
+#endif
+#if !RenderHighDetail
+        mesh.meshHigh = item.DecodedMesh.meshData.ToUnityMeshArray();
+#endif
+#if !RenderMediumDetail
+        mesh.meshMedium = item.DecodedMesh.meshData.ToUnityMeshArray();
+#endif
+		*/
+		mesh.meshHighest = item.DecodedMesh.meshData.ToUnityMeshArray();
 
-		// Based on the pattern in RenderPrim, we decode the mesh data at different detail levels.
-		// We are assuming the ToUnityMeshArray extension method can take a DetailLevel parameter.
-		mesh.meshHighest = item.DecodedMesh.meshData.ToUnityMeshArray(OpenMetaverse.Rendering.DetailLevel.Highest);
-		mesh.meshHigh = item.DecodedMesh.meshData.ToUnityMeshArray(OpenMetaverse.Rendering.DetailLevel.High);
-		mesh.meshMedium = item.DecodedMesh.meshData.ToUnityMeshArray(OpenMetaverse.Rendering.DetailLevel.Medium);
-
+		// What is going on here? We add to the cache? but do we ever read from it?
 		ClientManager.assetManager.meshCache.TryAdd(item.UUID, mesh);
 
 		if (item.MeshHolder.IsDestroyed())
@@ -153,46 +160,43 @@ public class MeshObjectManager : MonoBehaviour
 
 		var group = item.MeshHolder.GetComponent<LODGroup>();
 
+		// This was cauing some usses with skinned meshes
+		if (item.DecodedMesh.isSkinned)
+		{
+			group.enabled = false;
+		}
+
 		List<LOD> lods = new();
 
-		// Create renderers for each level of detail
-		var highestRenderers = CreateRenderers(mesh.meshHighest, item, "highest");
-		if (highestRenderers.Count > 0)
-		{
-			lods.Add(new LOD(0.6f, highestRenderers.ToArray()));
-		}
+		/*
+#if RenderHighestDetail
+		var highest = CreateRenderers(mesh.meshHighest, item, "highest");
+		lods.Add(new LOD(0.5f, highest.ToArray()));
+#endif
+#if !RenderHighDetail
+        var high = CreateRenderers(mesh.meshHighest, item, "high"); // is mesh.meshHighest a bug?
+		lods.Add(new LOD(0.333f, high.ToArray()));
+#endif
+#if !RenderMediumDetail
+        var medium = CreateRenderers(mesh.meshHighest, item, "medium"); // is mesh.meshHighest a bug?
+		lods.Add(new LOD(0.25f, medium.ToArray()));
+#endif
+		*/
 
-		var highRenderers = CreateRenderers(mesh.meshHigh, item, "high");
-		if (highRenderers.Count > 0)
-		{
-			lods.Add(new LOD(0.3f, highRenderers.ToArray()));
-		}
-
-		var mediumRenderers = CreateRenderers(mesh.meshMedium, item, "medium");
-		if (mediumRenderers.Count > 0)
-		{
-			lods.Add(new LOD(0.1f, mediumRenderers.ToArray()));
-		}
+		var highest = CreateRenderers(mesh.meshHighest, item, "highest");
+		lods.Add(new LOD(0.5f, highest.ToArray()));
 
 		group.SetLODs(lods.ToArray());
 		group.fadeMode = LODFadeMode.SpeedTree;
 		group.animateCrossFading = true;
 		group.RecalculateBounds();
-
 		if (item.Primitive.IsAttachment)
 			group.size = 10f;
 		else
 			group.size = 10f;
 
-		// The LOD group should be enabled to work, unless it's a skinned mesh which has its own handling.
-		if (!item.DecodedMesh.isSkinned)
-		{
-			group.enabled = true;
-		}
-		else
-        {
-			group.enabled = false;
-        }
+
+		group.enabled = false;
 	}
 
 	private List<Renderer> CreateRenderers(Mesh[] meshes, MeshRequest request, string level)
