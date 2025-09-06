@@ -113,7 +113,8 @@ namespace CrystalFrost.Client.Credentials
 			{
 				// Generate a new key if the file doesn't exist or loading fails
 				_log.LogInformation("Generating new key...");
-				publicKey = GenerateRandomBytes(16);
+				string constant = GenerateRandomString(random.Next(32, 64));
+				publicKey = GenerateKey(constant);
 			}
 			byte[] key = new byte[privateKey.Length + publicKey.Length];
 			Array.Copy(privateKey, key, privateKey.Length);
@@ -168,14 +169,16 @@ namespace CrystalFrost.Client.Credentials
 			}
 		}
 
-		public static byte[] GenerateRandomBytes(int length)
+		public static string GenerateRandomString(int length)
 		{
-			using (var rng = RandomNumberGenerator.Create())
+			StringBuilder stringBuilder = new StringBuilder(length);
+
+			for (int i = 0; i < length; i++)
 			{
-				var bytes = new byte[length];
-				rng.GetBytes(bytes);
-				return bytes;
+				stringBuilder.Append(characters[random.Next(characters.Length)]);
 			}
+
+			return stringBuilder.ToString();
 		}
 
 	}
