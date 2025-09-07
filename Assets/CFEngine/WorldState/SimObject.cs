@@ -66,8 +66,14 @@ namespace CrystalFrost.WorldState
 		/// </summary>
 		public List<SimObject> Children = new();
 
+		/// <summary>
+		/// The region the object is in.
+		/// </summary>
 		public Region Region;
 
+		/// <summary>
+		/// The scale of the object.
+		/// </summary>
 		public UnityEngine.Vector3 Scale;
 
 		/// <summary>
@@ -75,14 +81,29 @@ namespace CrystalFrost.WorldState
 		/// </summary>
 		public PrimType PrimType = PrimType.Unknown;
 		
+		/// <summary>
+		/// A flag indicating whether this object emits light.
+		/// </summary>
 		public bool IsLight = false;
 
+		/// <summary>
+		/// The radius of the light emitted by this object.
+		/// </summary>
 		public float LightRadius = 0;
 
+		/// <summary>
+		/// The color of the light emitted by this object.
+		/// </summary>
 		public UnityEngine.Color LightColor = UnityEngine.Color.black;
 
+		/// <summary>
+		/// The intensity of the light emitted by this object.
+		/// </summary>
 		public float LightIntensity = 0;
 
+		/// <summary>
+		/// The particle system associated with this object.
+		/// </summary>
 		public Primitive.ParticleSystem ParticleSystem;
 
 	}

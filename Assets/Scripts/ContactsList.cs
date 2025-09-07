@@ -10,7 +10,7 @@ public class ContactsList : MonoBehaviour
 
     public GameObject baseContactButton;
 	public GameObject console;
-	
+
     public class ContactEntry
     {
         public string name;

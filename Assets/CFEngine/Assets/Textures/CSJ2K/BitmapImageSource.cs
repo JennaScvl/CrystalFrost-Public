@@ -11,6 +11,9 @@ using System.Linq;
 namespace CrystalFrost.Assets.Textures.CSJ2K
 {
 
+    /// <summary>
+    /// Represents an image source from a <see cref="System.Drawing.Bitmap"/>.
+    /// </summary>
     internal class BitmapImageSource : PortableImageSource
     {
         private BitmapImageSource(Bitmap bitmap)

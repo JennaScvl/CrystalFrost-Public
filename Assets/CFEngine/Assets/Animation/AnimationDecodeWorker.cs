@@ -8,8 +8,14 @@ using CrystalFrost.Config;
 namespace CrystalFrost.Assets.Animation
 {
 
+	/// <summary>
+	/// Defines an interface for a background worker that decodes animation assets.
+	/// </summary>
 	public interface IAnimationDecodeWorker : IDisposable { }
 
+	/// <summary>
+	/// A background worker that decodes downloaded animation assets.
+	/// </summary>
 	public class AnimationDecodeWorker : BackgroundWorker, IAnimationDecodeWorker
 	{
 		private readonly AnimationConfig _AnimationConfig;
@@ -17,6 +23,15 @@ namespace CrystalFrost.Assets.Animation
 		private readonly IDecodedAnimationQueue _readyAnimationQueue;
 		private readonly IAnimationDecoder _AnimationDecoder;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AnimationDecodeWorker"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="runningIndicator">The provider for shutdown signals.</param>
+		/// <param name="downloadedAnimationQueue">The queue for downloaded animations.</param>
+		/// <param name="readyAnimationQueue">The queue for decoded animations.</param>
+		/// <param name="AnimationDecoder">The animation decoder.</param>
+		/// <param name="AnimationConfig">The animation configuration.</param>
 		public AnimationDecodeWorker(
 			ILogger<AnimationDecodeWorker> log,
 			IProvideShutdownSignal runningIndicator,

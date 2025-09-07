@@ -26,6 +26,10 @@ namespace CrystalFrost.WorldState
 		private ConcurrentDictionary<UUID, Region> _regions = new();
 		private ILogger<AllRegions> _log;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="AllRegions"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
 		public AllRegions(ILogger<AllRegions> log)
 		{
 			_log = log;

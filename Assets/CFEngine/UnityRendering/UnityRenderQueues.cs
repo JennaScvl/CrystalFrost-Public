@@ -9,6 +9,10 @@ namespace CrystalFrost.UnityRendering
 	/// </summary>
 	public interface INewSimObjectQueue : IConcurrentQueue<SimObject> { }
 
+	/// <summary>
+	/// Implements a thread-safe queue for new <see cref="SimObject"/> instances
+	/// that are ready for processing by the render thread.
+	/// </summary>
 	public class NewSimObjectQueue : AbstractedConcurrentQueue<SimObject>, INewSimObjectQueue { }
 
 	/// <summary>
@@ -22,5 +26,9 @@ namespace CrystalFrost.UnityRendering
 	/// </remarks>
 	public interface ISceneObjectsNeedingRenderersQueue : IConcurrentQueue<SceneObject> { }
 
+	/// <summary>
+	/// Implements a thread-safe queue for <see cref="SceneObject"/> instances
+	/// that have been set up and require renderer data to be added.
+	/// </summary>
 	public class SceneObjectsNeedingRenderersQueue : AbstractedConcurrentQueue<SceneObject>, ISceneObjectsNeedingRenderersQueue { }
 }

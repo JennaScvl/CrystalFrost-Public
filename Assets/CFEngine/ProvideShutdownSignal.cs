@@ -29,6 +29,11 @@ namespace CrystalFrost
         private readonly IUnityEditorEvents _editorEvents;
         public event Action OnShutdown;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ProvideShutdownSignal"/> class.
+        /// </summary>
+        /// <param name="log">The logger for recording messages.</param>
+        /// <param name="unityMode">The Unity editor events provider.</param>
         public ProvideShutdownSignal(ILogger<ProvideShutdownSignal> log,
             IUnityEditorEvents unityMode)
         {
@@ -52,6 +57,9 @@ namespace CrystalFrost
             OnShutdown?.Invoke();
         }
 
+        /// <summary>
+        /// Releases all resources used by the <see cref="ProvideShutdownSignal"/> object.
+        /// </summary>
         public void Dispose()
         {
             _editorEvents.BeforeAssemblyReload -= BeforeEditorAssemblyReload;

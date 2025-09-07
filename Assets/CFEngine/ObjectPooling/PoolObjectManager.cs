@@ -7,6 +7,9 @@ namespace CrystalFrost.ObjectPooling
 
     public partial class ObjectPool 
     {
+        /// <summary>
+        /// Manages the lifecycle of a pooled object, including its allocation, deallocation, and updates.
+        /// </summary>
         public class PoolObjectManager : MonoBehaviour
         {
             private Type[] requiredComponents = null;
@@ -24,7 +27,10 @@ namespace CrystalFrost.ObjectPooling
             public ObjectPool Pool { set => pool = value; }
             private bool requiresDeallocationCall = false;
 
-            // Activate the object and assign deallocation logic
+            /// <summary>
+            /// Activates the pooled object and assigns its deallocation logic.
+            /// </summary>
+            /// <param name="deallocationLogic">The logic to determine when the object should be deallocated.</param>
             public void AllocateSelf(IPoolObjectDeallocationLogic deallocationLogic)
             {
                 // set the object to active
@@ -36,7 +42,9 @@ namespace CrystalFrost.ObjectPooling
                 this.deallocationLogic = deallocationLogic;
             }
 
-            // Update the object, checking if it requires deallocation
+            /// <summary>
+            /// Updates the object's state and checks if it requires deallocation.
+            /// </summary>
             public void UpdateObject()
             {
                 if (isActivated && deallocationLogic != null && deallocationLogic.RequiresDeallocation())
@@ -54,13 +62,18 @@ namespace CrystalFrost.ObjectPooling
                 }
             }
 
-            // Set the deallocation logic for the object
+            /// <summary>
+            /// Sets the deallocation logic for the pooled object.
+            /// </summary>
+            /// <param name="deallocationLogic">The deallocation logic to assign.</param>
             public void SetDeallocationLogic(IPoolObjectDeallocationLogic deallocationLogic)
             {
                 this.deallocationLogic = deallocationLogic;
             }
 
-            // Deactivate the object and perform cleanup
+            /// <summary>
+            /// Deactivates the object, returns it to the pool, and performs necessary cleanup.
+            /// </summary>
             public void DeallocateSelf()
             {
                 isActivated = false;

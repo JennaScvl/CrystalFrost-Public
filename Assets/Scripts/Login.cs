@@ -461,6 +461,12 @@ public class Login : MonoBehaviour
 			_credentials.Save();
 			gameObject.GetComponent<ChatWindowUI>().PopulateContacts();
 
+			// Create the MiniMapController which will handle the map rendering
+			if (FindObjectOfType<MiniMapController>() == null)
+			{
+				GameObject miniMapGO = new GameObject("MiniMapController");
+				miniMapGO.AddComponent<MiniMapController>();
+			}
 		}
 		else
 		{

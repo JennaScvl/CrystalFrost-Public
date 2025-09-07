@@ -21,6 +21,12 @@ namespace CrystalFrost.WorldState
 		private readonly GridClient _client;
 		private readonly IWorld _world;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="HandleTerseUpdate"/> class.
+		/// </summary>
+		/// <param name="log">The logger for recording messages.</param>
+		/// <param name="client">The grid client.</param>
+		/// <param name="world">The world state.</param>
 		public HandleTerseUpdate(
 			ILogger<HandleTerseUpdate> log,
 			GridClient client,

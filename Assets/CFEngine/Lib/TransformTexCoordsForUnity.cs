@@ -5,11 +5,24 @@ using System.Collections.Generic;
 
 namespace CrystalFrost.Lib
 {
+    /// <summary>
+    /// Defines a method for transforming texture coordinates of vertices.
+    /// </summary>
     public interface ITransformTexCoords
     {
+        /// <summary>
+        /// Transforms the texture coordinates of a list of vertices based on the given texture entry face and primitive scale.
+        /// </summary>
+        /// <param name="vertices">The list of vertices to transform.</param>
+        /// <param name="center">The center of the primitive.</param>
+        /// <param name="teFace">The texture entry face containing transformation data.</param>
+        /// <param name="primScale">The scale of the primitive.</param>
         void TransformTexCoords(List<Vertex> vertices, Vector3 center, Primitive.TextureEntryFace teFace, Vector3 primScale);
     }
 
+    /// <summary>
+    /// Implements texture coordinate transformation for Unity, accounting for differences in texture rotation.
+    /// </summary>
     public class TransformTexCoordsForUnity :ITransformTexCoords
     {
 
@@ -20,14 +33,8 @@ namespace CrystalFrost.Lib
         public void TransformTexCoords(List<Vertex> vertices, Vector3 center, Primitive.TextureEntryFace teFace, Vector3 primScale)
         {
             // compute trig stuff up front
-
-            // Modified:
-            float cosineAngle = (float)Math.Sin(teFace.Rotation + 1.570796316f);
-            float sinAngle = (float)Math.Cos(teFace.Rotation + 1.570796316f);
-            
-            // Unmodified:
-            //float cosineAngle = (float)Math.Sin(teFace.Rotation);
-            //float sinAngle = (float)Math.Cos(teFace.Rotation);
+            float cosineAngle = (float)Math.Cos(teFace.Rotation + (float)Math.PI / 2f);
+            float sinAngle = (float)Math.Sin(teFace.Rotation + (float)Math.PI / 2f);
 
             for (int ii = 0; ii < vertices.Count; ii++)
             {
@@ -61,8 +68,8 @@ namespace CrystalFrost.Lib
                 float tX = vert.TexCoord.X - 0.5f;
                 float tY = vert.TexCoord.Y - 0.5f;
 
-                vert.TexCoord.X = (tX * cosineAngle + tY * sinAngle) * repeatU + teFace.OffsetU + 0.5f;
-                vert.TexCoord.Y = (-tX * sinAngle + tY * cosineAngle) * repeatV + teFace.OffsetV + 0.5f;
+                vert.TexCoord.X = (tX * cosineAngle - tY * sinAngle) * repeatU + teFace.OffsetU + 0.5f;
+                vert.TexCoord.Y = (tX * sinAngle + tY * cosineAngle) * repeatV + teFace.OffsetV + 0.5f;
                 vertices[ii] = vert;
             }
         }

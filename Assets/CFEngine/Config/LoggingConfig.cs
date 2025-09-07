@@ -4,11 +4,14 @@ using System.Runtime.InteropServices;
 
 namespace CrystalFrost.Config
 {
+    /// <summary>
+    /// Contains configuration settings for the logging subsystem.
+    /// </summary>
     public class LoggingConfig
     {
-        // Logging config is handled differently than other config sections since
-        // this configuraion is passed directly into the logging system.
-        // This creates the presets that can be modified by the user.
+        /// <summary>
+        /// Provides default logging level settings for various components.
+        /// </summary>
         public static Dictionary<string,string> DefaultValues = new Dictionary<string, string>()
         {
             { "Logging:LogLevel:Default", "Information" },
@@ -16,10 +19,19 @@ namespace CrystalFrost.Config
             { "Logging:LogLevel:CrystalFrost:Logging:LMVLogger", "Information" }
         };
 
+        /// <summary>
+        /// The name of the configuration subsection for logging.
+        /// </summary>
         public const string subsectionName = "Logging";
 
+        /// <summary>
+        /// Gets or sets the directory where log files will be stored.
+        /// </summary>
         public string LogDirectory { get; set; } = "./Logs";
 
+        /// <summary>
+        /// Defines the default log levels for different parts of the application.
+        /// </summary>
         public object LogLevel = new {
             Default = "Information",
             CrystalFrost = new {

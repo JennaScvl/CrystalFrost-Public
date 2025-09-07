@@ -7,11 +7,19 @@ using System.Threading.Tasks;
 
 namespace CrystalFrost.Assets.Textures.OpenJ2K
 {
+    /// <summary>
+    /// A texture decoder that uses the OpenJPEG library to decode JPEG2000 textures.
+    /// </summary>
     public class OpenJ2KTextureDecoder : ITextureDecoder
     {
         private readonly ILogger<OpenJ2KTextureDecoder> _log;
         private readonly ITgaReader _tgaReader;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OpenJ2KTextureDecoder"/> class.
+        /// </summary>
+        /// <param name="log">The logger for recording messages.</param>
+        /// <param name="tgaReader">The TGA reader for converting decoded textures.</param>
         public OpenJ2KTextureDecoder(
             ILogger<OpenJ2KTextureDecoder> log,
             ITgaReader tgaReader)
@@ -20,6 +28,11 @@ namespace CrystalFrost.Assets.Textures.OpenJ2K
             _tgaReader = tgaReader;
         }
 
+        /// <summary>
+        /// Decodes a JPEG2000 texture asset.
+        /// </summary>
+        /// <param name="texture">The texture asset to decode.</param>
+        /// <returns>A task that represents the asynchronous decode operation. The task result contains the decoded texture.</returns>
         public Task<DecodedTexture> Decode(AssetTexture texture)
         {
             return Perf.Measure("OpenJ2KTextureDecoder.Decode",

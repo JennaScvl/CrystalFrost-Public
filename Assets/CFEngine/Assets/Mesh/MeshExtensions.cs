@@ -7,8 +7,16 @@ using UnityEngine;
 
 namespace CrystalFrost.Assets.Mesh
 {
+	/// <summary>
+	/// Provides extension methods for working with mesh data.
+	/// </summary>
 	public static class MeshExtensions
 	{
+		/// <summary>
+		/// Reverses the winding order of the triangles in a mesh.
+		/// </summary>
+		/// <param name="mesh">The mesh to modify.</param>
+		/// <returns>The modified mesh.</returns>
 		public static UnityEngine.Mesh ReverseWind(this UnityEngine.Mesh mesh)
 		{
 			var indices = mesh.triangles;

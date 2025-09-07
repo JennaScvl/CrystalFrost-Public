@@ -7,13 +7,26 @@ using System.Drawing.Imaging;
 
 namespace CrystalFrost.Assets.Textures.CSJ2K
 {
+    /// <summary>
+    /// Represents an image as a <see cref="System.Drawing.Bitmap"/>.
+    /// </summary>
     internal class BitmapImage : ImageBase<Image>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BitmapImage"/> class.
+        /// </summary>
+        /// <param name="width">The width of the image.</param>
+        /// <param name="height">The height of the image.</param>
+        /// <param name="bytes">The raw byte data of the image.</param>
         internal BitmapImage(int width, int height, byte[] bytes)
             : base(width, height, bytes)
         {
         }
 
+        /// <summary>
+        /// Gets the image object as a <see cref="System.Drawing.Bitmap"/>.
+        /// </summary>
+        /// <returns>The image object.</returns>
         protected override object GetImageObject()
         {
             var bitmap = new Bitmap(Width, Height, PixelFormat.Format32bppArgb);
