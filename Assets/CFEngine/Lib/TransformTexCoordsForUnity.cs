@@ -33,8 +33,8 @@ namespace CrystalFrost.Lib
         public void TransformTexCoords(List<Vertex> vertices, Vector3 center, Primitive.TextureEntryFace teFace, Vector3 primScale)
         {
             // compute trig stuff up front
-            float cosineAngle = (float)Math.Cos(teFace.Rotation + 1.570796316f);
-            float sinAngle = (float)Math.Sin(teFace.Rotation + 1.570796316f);
+            float cosineAngle = (float)Math.Cos(teFace.Rotation + (float)Math.PI / 2f);
+            float sinAngle = (float)Math.Sin(teFace.Rotation + (float)Math.PI / 2f);
 
             for (int ii = 0; ii < vertices.Count; ii++)
             {
