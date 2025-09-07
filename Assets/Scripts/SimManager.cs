@@ -50,7 +50,7 @@ using UnityEngine.Animations;
 using Util;
 using Debug = UnityEngine.Debug;
 
-public class SimManager : MonoBehaviour, IDisposable
+public class SimManager : MonoBehaviour
 {
 	const float DEG_TO_RAD = 0.017453292519943295769236907684886f;
 	const float RAD_TO_DEG = 57.295779513082320876798154814105f;
@@ -187,11 +187,6 @@ public class SimManager : MonoBehaviour, IDisposable
 	}
 
 	private void Start()
-	{
-		Initialize();
-	}
-
-	public void Initialize()
 	{
 		client = ClientManager.client;
 
@@ -1447,80 +1442,4 @@ public class SimManager : MonoBehaviour, IDisposable
 			}
 		}
 	}
-
-    public void ClearRegion(ulong regionHandle)
-    {
-        _log.LogInformation($"Clearing region {regionHandle}");
-        List<uint> primsToRemove = new List<uint>();
-
-        foreach (var prim in scenePrims.Values)
-        {
-            if (prim.prim.RegionHandle == regionHandle)
-            {
-                primsToRemove.Add(prim.prim.LocalID);
-                if (prim.obj != null && prim.obj.transform != null && prim.obj.transform.root != null)
-                {
-                    Destroy(prim.obj.transform.root.gameObject);
-                }
-            }
-        }
-
-        foreach (uint localID in primsToRemove)
-        {
-            if (scenePrims.TryRemove(localID, out var removedPrim))
-            {
-                scenePrimIndexUUID.TryRemove(removedPrim.uuid, out _);
-            }
-        }
-
-        if (simulators.TryRemove(regionHandle, out var simContainer))
-        {
-            if (simContainer.transform != null)
-            {
-                Destroy(simContainer.transform.gameObject);
-            }
-        }
-        _log.LogInformation($"Cleared {primsToRemove.Count} prims from region {regionHandle}.");
-    }
-
-    public void Dispose()
-    {
-        _log.LogInformation("Disposing SimManager...");
-        foreach (var prim in scenePrims.Values)
-        {
-            if (prim.obj != null && prim.obj.transform != null && prim.obj.transform.root != null)
-            {
-                Destroy(prim.obj.transform.root.gameObject);
-            }
-        }
-        scenePrims.Clear();
-        scenePrimIndexUUID.Clear();
-        orphanedPrims.Clear();
-
-        foreach (var sim in simulators.Values)
-        {
-            if (sim.transform != null)
-            {
-                Destroy(sim.transform.gameObject);
-            }
-        }
-        simulators.Clear();
-
-        objectsToRez.Clear();
-        meshRequests.Clear();
-
-        objectDataBlockUpdates = new ConcurrentQueue<ObjectDataBlockUpdateEventArgs>();
-        unTexturedPrims = new ConcurrentQueue<ScenePrimData>();
-        terseUpdates = new ConcurrentQueue<TerseObjectUpdateEventArgs>();
-        objectUpdates = new ConcurrentQueue<PrimEventArgs>();
-
-        while (_killObjectQueue.TryDequeue(out _)) { }
-        while (_loadedAnimationRequest.TryDequeue(out _)) { }
-        while (_avatarUpdates.TryDequeue(out _)) { }
-        while (_objectPropertiesUpdateEvents.TryDequeue(out _)) { }
-        while (_objectPropertiesEvents.TryDequeue(out _)) { }
-        while (_nameReplyEvents.TryDequeue(out _)) { }
-
-        _log.LogInformation("SimManager disposed.");
-    }
 }

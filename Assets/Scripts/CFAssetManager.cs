@@ -23,7 +23,7 @@ using Unity.VisualScripting;
 
 namespace CrystalFrost
 {
-	public class CFAssetManager : IDisposable
+	public class CFAssetManager
 	{
 		//it's faster to multiply by this than to divide by 255
 		//to derive the float value from 0-255 pixel values
@@ -341,21 +341,5 @@ namespace CrystalFrost
 		}
 
 		private readonly ConcurrentDictionary<UUID, List<SculptData>> requestedMeshes = new();
-
-        public void Dispose()
-        {
-            // Clear all caches and collections
-            concurrentMeshQueue = new ConcurrentQueue<MeshQueueItem>();
-            meshCache.Clear();
-            sounds.Clear();
-            materials.Clear();
-            componentsDict.Clear();
-            fullbrights.Clear();
-            materialContainer.Clear();
-            requestedMeshes.Clear();
-
-            // Any other cleanup logic for this manager would go here
-            _log.LogInformation("CFAssetManager disposed.");
-        }
-    }
+	}
 }

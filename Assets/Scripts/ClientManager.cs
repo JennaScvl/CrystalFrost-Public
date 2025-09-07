@@ -2,9 +2,13 @@ using OpenMetaverse;
 using CrystalFrost;
 using UnityEngine;
 
+using UnityEngine;
+
 public static class ClientManager
 {
 	public static bool isOpenSim = false;
+    public static Camera miniMapCamera;
+    public static RenderTexture miniMapTexture;
     public static GridClient client;
     public static TexturePipeline texturePipeline;
     public static bool active = false;
