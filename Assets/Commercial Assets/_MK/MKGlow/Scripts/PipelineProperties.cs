@@ -25,7 +25,7 @@ namespace MK.Glow
     {
         //For even super large displays preserve some extra memory to prevent erros and gc.
         internal static readonly int renderBufferSize = 15;
-        internal static bool scriptableRenderPipelineActive{ get { return UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset != null; } }
+        internal static bool scriptableRenderPipelineActive{ get { return UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline != null; } }
         #if UNITY_2018_3_OR_NEWER
         #if ENABLE_VR
         internal static bool xrEnabled { get{ return XRSettings.enabled; } }

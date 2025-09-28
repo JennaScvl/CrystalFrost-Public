@@ -222,7 +222,7 @@ namespace MK.Glow.LWRP
 
         public override bool IsEnabledAndSupported(PostProcessRenderContext context)
         {
-            if(workflow == Workflow.Selective && (UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset || PipelineProperties.xrEnabled))
+            if(workflow == Workflow.Selective && (UnityEngine.Rendering.GraphicsSettings.defaultRenderPipeline || PipelineProperties.xrEnabled))
                 return false;
             else
                 return Compatibility.IsSupported && enabled.value;
