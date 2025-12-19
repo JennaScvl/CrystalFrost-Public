@@ -125,7 +125,11 @@ public class SimManager : MonoBehaviour
 	private readonly ConcurrentQueue<UUIDNameReplyEvent> _nameReplyEvents = new();
 	private ConcurrentQueue<ScenePrimData> unTexturedPrims = new();
 
-	void AvatarNamesEventHandler(object sender, UUIDNameReplyEventArgs e)
+	private readonly ConcurrentQueue<TerseObjectUpdateEventArgs> _terseUpdates = new();
+	private readonly ConcurrentQueue<PrimEventArgs> _objectUpdates = new();
+	private ObjectProximityHandler _objectProximityHandler;
+	
+	private void AvatarNamesEventHandler(object sender, UUIDNameReplyEventArgs e)
 	{
 		foreach (KeyValuePair<UUID, string> kvp in e.Names)
 		{
@@ -212,8 +216,8 @@ public class SimManager : MonoBehaviour
 
 		StartCoroutine(UpdateCamera());
 		StartCoroutine(CleanUnusedAssets());
-		objectProximityHandler = new ObjectProximityHandler(objectUpdates, client);
-		objectProximityHandler.UpdateCameraProperties(Camera.main);
+		_objectProximityHandler = new ObjectProximityHandler(_objectUpdates, client);
+		_objectProximityHandler.UpdateCameraProperties(Camera.main);
 	}
 
 	private void OnDestroy()
@@ -259,7 +263,7 @@ public class SimManager : MonoBehaviour
 
 	private void AvatarUpdateHandler(object sender, AvatarUpdateEventArgs e)
 	{
-		this.objectProximityHandler.AddPrimPositionID(e.Avatar.LocalID, e.Avatar.ParentID, e.Avatar.Position);
+		this._objectProximityHandler.AddPrimPositionID(e.Avatar.LocalID, e.Avatar.ParentID, e.Avatar.Position);
 		_avatarUpdates.Enqueue(e);
 	}
 
@@ -398,7 +402,7 @@ public class SimManager : MonoBehaviour
 
 	private void ObjectPropertiesUpdateHandler(object sender, ObjectPropertiesUpdatedEventArgs e)
 	{
-		this.objectProximityHandler.AddPrimPositionID(e.Prim);
+		this._objectProximityHandler.AddPrimPositionID(e.Prim);
 		_objectPropertiesUpdateEvents.Enqueue(e);
 	}
 
@@ -517,9 +521,9 @@ public class SimManager : MonoBehaviour
 
 	private void KillObjects()
 	{
-		Material dissolver = Resources.Load<Material>("Dissolver");
-		Material original;
-		Material dissolvemat;
+		// Material dissolver = Resources.Load<Material>("Dissolver");
+		// Material original;
+		// Material dissolvemat;
 		List<MeshRequestData> newmrd = new();
 
 		while (_killObjectQueue.Count > 0)
@@ -541,17 +545,17 @@ public class SimManager : MonoBehaviour
 						continue;
 					}
 
-					GameObject go = scenePrims[data.e.ObjectLocalID].obj;
-					Renderer[] rs = go.GetComponentsInChildren<Renderer>();
-					foreach (Renderer r in rs)
-					{
-						original = r.material;
-						dissolvemat = Instantiate<Material>(dissolver);
-						dissolvemat.SetTexture("_MainTex", original.GetTexture("_MainTex"));
-						r.material = dissolvemat;
-						r.gameObject.AddComponent<DissolveOut>();
-						r.GetComponent<MeshCollider>().enabled = false;
-					}
+					// GameObject go = scenePrims[data.e.ObjectLocalID].obj;
+					// Renderer[] rs = go.GetComponentsInChildren<Renderer>();
+					// foreach (Renderer r in rs)
+					// {
+						// original = r.material;
+						// dissolvemat = Instantiate<Material>(dissolver);
+						// dissolvemat.SetTexture("_MainTex", original.GetTexture("_MainTex"));
+						// r.material = dissolvemat;
+						// r.gameObject.AddComponent<DissolveOut>();
+						// r.GetComponent<MeshCollider>().enabled = false;
+					// }
 
 					newmrd = new List<MeshRequestData>();
 					foreach (MeshRequestData mrd in meshRequests)
@@ -698,7 +702,7 @@ public class SimManager : MonoBehaviour
 					new OMVVector3(Camera.main.transform.position.x, Camera.main.transform.position.z,
 						Camera.main.transform.position.y),
 					new OMVVector3(lookat.x, lookat.z, lookat.y));
-				objectProximityHandler.UpdateCameraProperties(Camera.main);
+				_objectProximityHandler.UpdateCameraProperties(Camera.main);
 
 				//    client.Self.SimPosition + new OMVVector3(-5, 0, 0) * client.Self.Movement.BodyRotation,
 				//    client.Self.SimPosition
@@ -819,7 +823,7 @@ public class SimManager : MonoBehaviour
 	/// </summary>
 	void AllObjectsUpdate(float t)
 	{
-		while (objectUpdates.TryDequeue(out var update) && update is not null)
+		while (_objectUpdates.TryDequeue(out var update) && update is not null)
 		{
 			if (update.IsNew && !scenePrims.ContainsKey(update.Prim.LocalID))
 			{
@@ -849,18 +853,15 @@ public class SimManager : MonoBehaviour
 		simulators[e.Simulator.Handle].terrain.TerrainPatchUpdate(e);
 	}
 
-
-	public ConcurrentQueue<TerseObjectUpdateEventArgs> terseUpdates = new();
-
-	void Objects_TerseObjectUpdate(object sender, TerseObjectUpdateEventArgs e)
+	private void Objects_TerseObjectUpdate(object sender, TerseObjectUpdateEventArgs e)
 	{
-		this.objectProximityHandler.AddPrimPositionID(e.Prim);
-		terseUpdates.Enqueue(e);
+		this._objectProximityHandler.AddPrimPositionID(e.Prim);
+		_terseUpdates.Enqueue(e);
 	}
 
-	void TerseUpdates(float t)
+	private void TerseUpdates(float t)
 	{
-		while (terseUpdates.TryDequeue(out var update) && update is not null)
+		while (_terseUpdates.TryDequeue(out var update) && update is not null)
 		{
 			if (scenePrims.ContainsKey(update.Update.LocalID))
 			{
@@ -868,13 +869,10 @@ public class SimManager : MonoBehaviour
 			}
 		}
 	}
-
-	public ConcurrentQueue<PrimEventArgs> objectUpdates = new();
-	public ObjectProximityHandler objectProximityHandler;
-
-	void Objects_ObjectUpdate(object sender, PrimEventArgs _event)
+	
+	private void Objects_ObjectUpdate(object sender, PrimEventArgs _event)
 	{
-		objectProximityHandler.AddObject(_event);
+		_objectProximityHandler.AddObject(_event);
 		//objectUpdates.Enqueue(_event);
 	}
 
@@ -911,10 +909,10 @@ public class SimManager : MonoBehaviour
 			ClientManager.assetManager.materials[uuid].Add(rendr);
 		}
 
-		DissolveIn dis = rendr.gameObject.AddComponent<DissolveIn>();
-		dis.texture = ClientManager.assetManager.materialContainer[uuid].texture;
-		dis.color = color;
-		dis.newMat = ClientManager.assetManager.materialContainer[uuid].GetMaterial(color, tef.Glow, tef.Fullbright);
+		// DissolveIn dis = rendr.gameObject.AddComponent<DissolveIn>();
+		// dis.texture = ClientManager.assetManager.materialContainer[uuid].texture;
+		// dis.color = color;
+		// dis.newMat = ClientManager.assetManager.materialContainer[uuid].GetMaterial(color, tef.Glow, tef.Fullbright);
 	}
 
 	public void TextureFace(Primitive prim, int subMeshIndex, Renderer rendr)
@@ -929,10 +927,8 @@ public class SimManager : MonoBehaviour
 		textureEntryFace.GetOSD(subMeshIndex);
 
 		Color color = textureEntryFace.RGBA.ToUnity();
-
 		Material newMaterial = ClientManager.assetManager.RequestTexture(textureEntryFace.TextureID, rendr,
 			subMeshIndex, color, textureEntryFace.Glow, textureEntryFace.Fullbright);
-
 
 		if (textureEntryFace.Fullbright) rendr.gameObject.layer = 7;
 		else rendr.gameObject.layer = 0;

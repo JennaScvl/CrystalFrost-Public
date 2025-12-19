@@ -20,7 +20,6 @@ using CrystalFrost.Config;
 using CrystalFrost.Extensions;
 using CrystalFrost.Scripts;
 using CrystalFrost.Timing;
-
 using Microsoft.Extensions.Logging;
 using Temp;
 using static System.Net.WebRequestMethods;
@@ -141,12 +140,11 @@ public class Login : MonoBehaviour
 		ClientManager.assetManager = new CrystalFrost.CFAssetManager();
 
 		//ClientManager.client.Settings
-		ClientManager.client.Network.SimConnected += new EventHandler<SimConnectedEventArgs>(SimConnectedEventHandler);
-		ClientManager.client.Network.SimConnecting += new EventHandler<SimConnectingEventArgs>(SimConnectingEventHandler);
+		ClientManager.client.Network.SimConnected += SimConnectedEventHandler;
+		ClientManager.client.Network.SimConnecting += SimConnectingEventHandler;
 		ClientManager.client.Network.SimDisconnected += new EventHandler<SimDisconnectedEventArgs>(SimDisconnectedEventHandler);
 		ClientManager.client.Network.SimChanged += new EventHandler<SimChangedEventArgs>(SimChangedEventHandler);
 		ClientManager.client.Self.RegionCrossed += new EventHandler<RegionCrossedEventArgs>(RegionCrossedEventHandler);
-
 		//ClientManager.client.Self.AgentID
 		//ClientManager.client.Network.
 		//ClientManager.client.Grid.GridRegion += new EventHandler<GridRegionEventArgs>(GridRegionEventHandler);
@@ -157,10 +155,17 @@ public class Login : MonoBehaviour
 		if (_loginUriProvider.GetLoginUri() != "https://login.agni.lindenlab.com/cgi-bin/login.cgi")
 			gridURL.text = _loginUriProvider.GetLoginUri();
 
+		// ClientManager.client.Inventory.ItemReceived += InventoryOnItemReceived;
+	}
+
+	private void InventoryOnItemReceived(object sender, ItemReceivedEventArgs e)
+	{
+		Debug.Log($"Item: {e.Item.Name}");
 	}
 
 	private void OnDestroy()
 	{
+		// ClientManager.client.Inventory.ItemReceived -= InventoryOnItemReceived;
 		ClientManager.client.Network.SimConnected -= new EventHandler<SimConnectedEventArgs>(SimConnectedEventHandler);
 		ClientManager.client.Network.SimConnecting -= new EventHandler<SimConnectingEventArgs>(SimConnectingEventHandler);
 		ClientManager.client.Network.SimDisconnected -= new EventHandler<SimDisconnectedEventArgs>(SimDisconnectedEventHandler);
@@ -460,7 +465,7 @@ public class Login : MonoBehaviour
 			_currentCredential.LastUsed = System.DateTime.UtcNow;
 			_credentials.Save();
 			gameObject.GetComponent<ChatWindowUI>().PopulateContacts();
-
+			// DevInventory.BootstrapInventory();
 		}
 		else
 		{

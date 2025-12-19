@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Linq;
 using UnityEngine;
 using OpenMetaverse;
 using OpenMetaverse.Assets;
@@ -131,7 +132,8 @@ namespace CrystalFrost
 			if (subMeshIndex < mats.Length)
 			{
 				mats[subMeshIndex] = newMaterial;
-				rendr.materials = mats;
+				rendr.sharedMaterial = mats.FirstOrDefault();
+				// rendr.materials = mats;
 			}
 
 			if (!materialContainer[uuid].ready)
@@ -285,7 +287,7 @@ namespace CrystalFrost
 				{
 					if (materials[uuid][i] == null) continue;
 
-					dis = materials[uuid][i].GetComponent<DissolveIn>();
+					// dis = materials[uuid][i].GetComponent<DissolveIn>();
 
 					Primitive.TextureEntryFace textureEntryFace;
 					PrimInfo pi = materials[uuid][i].GetComponent<PrimInfo>();
@@ -300,14 +302,14 @@ namespace CrystalFrost
 					if (ClientManager.simManager.scenePrims.ContainsKey(pi.localID))
 					{
 						materials[uuid][i].name += " alpha";
-						if (dis == null)
-						{
+						// if (dis == null)
+						// {
 							materials[uuid][i].sharedMaterial = materialContainer[uuid].GetMaterialAlpha(textureEntryFace.RGBA.ToUnity(), textureEntryFace.Glow, textureEntryFace.Fullbright);
-						}
-						else
-						{
-							dis.newMat = materialContainer[uuid].GetMaterialAlpha(textureEntryFace.RGBA.ToUnity(), textureEntryFace.Glow, textureEntryFace.Fullbright);
-						}
+						// }
+						// else
+						// {
+						// 	dis.newMat = materialContainer[uuid].GetMaterialAlpha(textureEntryFace.RGBA.ToUnity(), textureEntryFace.Glow, textureEntryFace.Fullbright);
+						// }
 					}
 
 				}
